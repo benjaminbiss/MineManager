@@ -18,7 +18,7 @@ protected:
 	virtual void BeginPlay() override;
 	void CreateChunk(FIntPoint ChunkCoord);
 	void CreateChunkArray();
-	void WorldToChunkLocation(FVector WorldPosition, FIntPoint& OutChunkCoord, FIntPoint& OutVertexCoord);
+	void WorldToChunkLocation(FVector WorldPosition, TArray<FIntPoint>& OutChunkCoords, TArray<FIntPoint>& OutVertexCoords);
 
 	UFUNCTION()
 	void ChangeVertexHeight(FVector WorldPosition, bool bRaise);
