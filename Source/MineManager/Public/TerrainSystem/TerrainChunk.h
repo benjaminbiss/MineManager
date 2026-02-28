@@ -20,12 +20,15 @@ protected:
 	void SetupHeightDeltaMap(TArray<float> InHeightDeltaMap);
 	void UpdateMeshWithHeightDeltaMap();
 	void UpdateVertexHeight(int32 VertexIndex, float HeightDelta);
-	void RecalculateMesh();
-	void GenerateTriangles();
+	void CalculateMesh(); // Complete mesh generation including collision
+	void RecalculateMesh(); // Purley visual mesh update without collision mesh regeneration, for better performance when applying small deformations
+	void UpdateMeshNavigation();
 
 	// Mesh data
+public:
 	UPROPERTY()
 	UProceduralMeshComponent* Mesh;
+protected:
 	UPROPERTY()
 	TArray<int32> Triangles;
 	UPROPERTY()

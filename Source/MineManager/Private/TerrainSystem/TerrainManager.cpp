@@ -1,7 +1,12 @@
 #include "TerrainSystem/TerrainManager.h"
 
+#include "EngineUtils.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+#include "NavigationSystem.h"
+
 #include "TerrainSystem/TerrainChunk.h"
 #include "Controllers/MM_PlayerController.h"
+#include <NavMesh/RecastNavMesh.h>
 
 ATerrainManager::ATerrainManager()
 {
@@ -13,8 +18,7 @@ void ATerrainManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ChunkSize = ChunkDimensions * ChunkTriSize;
-	
+	// TEMP USED FOR DEBUGGING DEFORMATION
 	PlayerController = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
 	if (!PlayerController)
 	{
@@ -25,7 +29,29 @@ void ATerrainManager::BeginPlay()
 		PlayerController->OnDebugDeformationInput.AddDynamic(this, &ATerrainManager::ChangeVertexHeight);
 	}
 
+	ChunkSize = ChunkDimensions * ChunkTriSize;
 	CreateChunkArray();	
+
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	if (NavSys)
+	{
+		ARecastNavMesh* NavData = Cast<ARecastNavMesh>(UNavigationSystemV1::GetCurrent(GetWorld())->GetDefaultNavDataInstance());
+		if (NavData)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Recast Bounds: %s"), *NavData->GetBounds().ToString());
+		}
+
+		NavSys->Build();
+		UE_LOG(LogTemp, Log, TEXT("ATerrainManager|BeginPlay: Navigation system built successfully."));
+
+		for (ATerrainChunk* Chunk : TerrainChunks)
+		{
+			if (Chunk && Chunk->Mesh)
+			{
+				NavSys->UpdateComponentInNavOctree(*Chunk->Mesh);
+			}
+		}
+	}
 }
 
 void ATerrainManager::CreateChunk(FIntPoint ChunkCoord)

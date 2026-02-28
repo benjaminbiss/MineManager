@@ -5,6 +5,7 @@
 #include "TerrainManager.generated.h"
 
 class AMM_PlayerController;
+class ANavMeshBoundsVolume;
 
 UCLASS()
 class MINEMANAGER_API ATerrainManager : public AActor
@@ -23,24 +24,27 @@ protected:
 	UFUNCTION()
 	void ChangeVertexHeight(FVector WorldPosition, bool bRaise);
 
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	TSubclassOf<class ATerrainChunk> TerrainChunkClass;
-	UPROPERTY(VisibleAnywhere, Category = "Terrain")
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Terrain")
 	TArray<ATerrainChunk*> TerrainChunks;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 ChunkDimensions;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 ChunkTriSize;
-	UPROPERTY(VisibleAnywhere, Category = "Terrain")
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Terrain")
 	int32 ChunkSize;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 MapSize;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 Seed;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	float NoiseScale;
-	UPROPERTY(EditAnywhere, Category = "Terrain")
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	float HeightMultiplier;
+
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Navigation Invoker")
+	ANavMeshBoundsVolume* NavMeshBoundsVolume;
 
 	AMM_PlayerController* PlayerController;
 };
