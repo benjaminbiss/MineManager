@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZoomCameraInputSignature, float, Va
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectInputSignature, bool, bPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSecondarySelectInputSignature, bool, bPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRotateHoldInputSignature, bool, bPressed);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDebugDeformationInputSignature, FVector, WorldPosition, bool, bRaise);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedWorldLocationInputSignature, FVector, WorldLocation, bool, bPressed);
 
 UCLASS()
 class MINEMANAGER_API AMM_PlayerController : public APlayerController
@@ -64,12 +64,18 @@ public:
     FRotateHoldInputSignature OnRotateHoldInput;
 
 	UPROPERTY(BlueprintAssignable, Category = "MyParameters|Input")
-	FDebugDeformationInputSignature OnDebugDeformationInput;
+    FSelectedWorldLocationInputSignature OnSelectedWorldLocationStarted;
+    UPROPERTY(BlueprintAssignable, Category = "MyParameters|Input")
+    FSelectedWorldLocationInputSignature OnSelectedWorldLocationTriggered;
+    UPROPERTY(BlueprintAssignable, Category = "MyParameters|Input")
+    FSelectedWorldLocationInputSignature OnSelectedWorldLocationCompleted;
 
     void Move(const FInputActionValue& Value);
     void Rotate(const FInputActionValue& Value);
     void Zoom(const FInputActionValue& Value);
-    void Select(const FInputActionValue& Value);
+    void SelectStarted(const FInputActionValue& Value);
+    void SelectTriggered(const FInputActionValue& Value);
+    void SelectCompleted(const FInputActionValue& Value);
 	void SecondarySelect(const FInputActionValue& Value);
     void RotateHold(const FInputActionValue& Value);
 };

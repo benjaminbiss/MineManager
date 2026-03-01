@@ -31,6 +31,10 @@ protected:
 	float RotationSpeed = 90.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units per mouse wheel tick"))
 	float ZoomSpeed = 1000.f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyParameters|Movement")
+	float TargetZoomLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyParameters|Movement")
+	bool bIsZoomingCamera = false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units"))
 	float MinArmLength = 1000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units"))
@@ -52,7 +56,7 @@ protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void RotateCamera(float Value);
-	void ZoomIn(float Value);
+	void SmoothZoom(float DeltaTime);
 	float GetMouseXDelta();
 
 public:	

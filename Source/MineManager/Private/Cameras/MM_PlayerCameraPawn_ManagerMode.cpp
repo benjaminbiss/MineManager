@@ -7,7 +7,6 @@
 AMM_PlayerCameraPawn_ManagerMode::AMM_PlayerCameraPawn_ManagerMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
@@ -24,7 +23,8 @@ void AMM_PlayerCameraPawn_ManagerMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SpringArm->TargetArmLength = 4000.f;
+	TargetZoomLevel = 4000.f;
+	SpringArm->TargetArmLength = TargetZoomLevel;
 	SpringArm->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = false;
 }
@@ -47,6 +47,11 @@ void AMM_PlayerCameraPawn_ManagerMode::Tick(float DeltaTime)
 
 	if (bIsRotatingCamera)
 		RotateCamera(GetMouseXDelta());
+
+	if (bIsZoomingCamera)
+	{
+		SmoothZoom(DeltaTime);
+	}
 }
 
 #pragma region Movement
@@ -63,11 +68,11 @@ void AMM_PlayerCameraPawn_ManagerMode::HandleRotateInput(float Value)
 void AMM_PlayerCameraPawn_ManagerMode::HandleMouseRotateInput(bool Value)
 {
 	bIsRotatingCamera = Value;
-	PrimaryActorTick.SetTickFunctionEnable(Value);
 }
 void AMM_PlayerCameraPawn_ManagerMode::HandleZoomInput(float Value)
 {
-	ZoomIn(Value);
+	TargetZoomLevel = FMath::Clamp(TargetZoomLevel + (Value * ZoomSpeed), MinArmLength, MaxArmLength);
+	bIsZoomingCamera = true;
 }
 // Movement Functions
 void AMM_PlayerCameraPawn_ManagerMode::MoveForward(float Value)
@@ -96,13 +101,19 @@ void AMM_PlayerCameraPawn_ManagerMode::RotateCamera(float Value)
 	}
 }
 
-void AMM_PlayerCameraPawn_ManagerMode::ZoomIn(float Value)
+void AMM_PlayerCameraPawn_ManagerMode::SmoothZoom(float DeltaTime)
 {
-	if (SpringArm && !FMath::IsNearlyZero(Value))
+	// Smoothly interpolate the current arm length towards the target zoom level
+	float CurrentArmLength = SpringArm->TargetArmLength;
+	float NewArmLength = FMath::FInterpTo(CurrentArmLength, TargetZoomLevel, DeltaTime, 5.f); // 5.f is the interpolation speed
+	SpringArm->TargetArmLength = NewArmLength;
+	if (FMath::IsNearlyEqual(NewArmLength, TargetZoomLevel, 1.f)) // If we're close enough to the target, stop zooming
 	{
-		SpringArm->TargetArmLength = FMath::Clamp(SpringArm->TargetArmLength + Value * ZoomSpeed, MinArmLength, MaxArmLength);
+		SpringArm->TargetArmLength = TargetZoomLevel;
+		bIsZoomingCamera = false;
 	}
 }
+
 float AMM_PlayerCameraPawn_ManagerMode::GetMouseXDelta()
 {
 	APlayerController* PC = Cast<APlayerController>(GetController());

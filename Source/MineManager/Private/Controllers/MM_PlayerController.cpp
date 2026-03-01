@@ -30,8 +30,12 @@ void AMM_PlayerController::SetupInputComponent()
 
 	EIC->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &AMM_PlayerController::Zoom);
 
-	EIC->BindAction(SelectAction, ETriggerEvent::Started, this, &AMM_PlayerController::Select);
+	EIC->BindAction(SelectAction, ETriggerEvent::Started, this, &AMM_PlayerController::SelectStarted);
+	EIC->BindAction(SelectAction, ETriggerEvent::Triggered, this, &AMM_PlayerController::SelectTriggered);
+	EIC->BindAction(SelectAction, ETriggerEvent::Completed, this, &AMM_PlayerController::SelectCompleted);
 	EIC->BindAction(SecondarySelectAction, ETriggerEvent::Started, this, &AMM_PlayerController::SecondarySelect);
+	EIC->BindAction(SecondarySelectAction, ETriggerEvent::Triggered, this, &AMM_PlayerController::SecondarySelect);
+	EIC->BindAction(SecondarySelectAction, ETriggerEvent::Completed, this, &AMM_PlayerController::SecondarySelect);
 
 	EIC->BindAction(RotateHoldAction, ETriggerEvent::Started, this, &AMM_PlayerController::RotateHold);
 	EIC->BindAction(RotateHoldAction, ETriggerEvent::Completed, this, &AMM_PlayerController::RotateHold);
@@ -56,7 +60,7 @@ void AMM_PlayerController::Zoom(const FInputActionValue& Value)
 	OnZoomInput.Broadcast(ZoomValue);
 }
 
-void AMM_PlayerController::Select(const FInputActionValue& Value)
+void AMM_PlayerController::SelectStarted(const FInputActionValue& Value)
 {
 	//bool bPressed = Value.Get<bool>();
 	//OnSelectInput.Broadcast(bPressed);
@@ -73,14 +77,14 @@ void AMM_PlayerController::Select(const FInputActionValue& Value)
 
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
 	{
-		OnDebugDeformationInput.Broadcast(HitResult.Location, true);
+		bool bPressed = Value.Get<bool>();
+		OnSelectedWorldLocationStarted.Broadcast(HitResult.Location, bPressed);
 	}
 }
-
-void AMM_PlayerController::SecondarySelect(const FInputActionValue& Value)
+void AMM_PlayerController::SelectTriggered(const FInputActionValue& Value)
 {
 	//bool bPressed = Value.Get<bool>();
-	//OnSecondarySelectInput.Broadcast(bPressed);
+	//OnSelectInput.Broadcast(bPressed);
 
 	FVector WorldOrigin, WorldDirection;
 	DeprojectMousePositionToWorld(WorldOrigin, WorldDirection);
@@ -94,8 +98,37 @@ void AMM_PlayerController::SecondarySelect(const FInputActionValue& Value)
 
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
 	{
-		OnDebugDeformationInput.Broadcast(HitResult.Location, false);
+		bool bPressed = Value.Get<bool>();
+		OnSelectedWorldLocationTriggered.Broadcast(HitResult.Location, bPressed);
 	}
+}
+void AMM_PlayerController::SelectCompleted(const FInputActionValue& Value)
+{
+	//bool bPressed = Value.Get<bool>();
+	//OnSelectInput.Broadcast(bPressed);
+
+	FVector WorldOrigin, WorldDirection;
+	DeprojectMousePositionToWorld(WorldOrigin, WorldDirection);
+
+	FVector Start = WorldOrigin;
+	FVector End = WorldOrigin + WorldDirection * 50000.f;
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.bTraceComplex = true;
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		bool bPressed = Value.Get<bool>();
+		OnSelectedWorldLocationCompleted.Broadcast(HitResult.Location, bPressed);
+	}
+
+}
+
+void AMM_PlayerController::SecondarySelect(const FInputActionValue& Value)
+{
+	bool bPressed = Value.Get<bool>();
+	OnSecondarySelectInput.Broadcast(bPressed);
 }
 
 void AMM_PlayerController::RotateHold(const FInputActionValue& Value)
