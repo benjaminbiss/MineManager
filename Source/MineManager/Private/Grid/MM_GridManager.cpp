@@ -12,13 +12,13 @@ void AMM_GridManager::BeginPlay()
 		
 }
 
-void AMM_GridManager::InitializeGridParameters(int32 InWorldGridDimensions, int32 InCellSize)
+void AMM_GridManager::InitializeGridParameters(const int32 InWorldGridDimensionsInCells, const int32 InCellSize)
 {
-	WorldGridDimensionsInCells = InWorldGridDimensions;
+	WorldGridDimensionsInCells = InWorldGridDimensionsInCells;
 	CellSize = InCellSize;
 }
 
-FVector AMM_GridManager::WorldPosToGridCoords(FVector WorldPosition) const
+FVector AMM_GridManager::WorldPosToGridCoords(const FVector& WorldPosition) const
 {
 	FVector GridPosition;
 	GridPosition.X = FMath::FloorToInt(WorldPosition.X / CellSize);
@@ -27,7 +27,7 @@ FVector AMM_GridManager::WorldPosToGridCoords(FVector WorldPosition) const
 	return GridPosition;	
 }
 
-FVector AMM_GridManager::WorldPosAlignedToGrid(FVector WorldPosition) const
+FVector AMM_GridManager::WorldPosAlignedToGrid(const FVector& WorldPosition) const
 {
 	FVector GridAlignedPosition = WorldPosToGridCoords(WorldPosition);
 	GridAlignedPosition.X *= CellSize;
@@ -36,7 +36,7 @@ FVector AMM_GridManager::WorldPosAlignedToGrid(FVector WorldPosition) const
 	return GridAlignedPosition;
 }
 
-FVector AMM_GridManager::GridCoordsToWorldPos(FVector GridPosition) const
+FVector AMM_GridManager::GridCoordsToWorldPos(const FVector& GridPosition) const
 {
 	FVector GridAlignedPosition = GridPosition;
 	GridAlignedPosition.X *= CellSize;

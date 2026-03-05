@@ -44,7 +44,7 @@ void AMM_GameMode_ManagerMode::SpawnWorkerManager()
 	}
 }
 
-void AMM_GameMode_ManagerMode::SpawnTaskManager(AMM_PlayerController* PlayerController)
+void AMM_GameMode_ManagerMode::SpawnTaskManager(const AMM_PlayerController* PlayerController)
 {
 	if (TaskManager)
 	{
@@ -62,14 +62,14 @@ void AMM_GameMode_ManagerMode::SpawnTaskManager(AMM_PlayerController* PlayerCont
 
 		if (PlayerController)
 		{
-			PlayerController->OnSelectedWorldLocationStarted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestStarted);
-			PlayerController->OnSelectedWorldLocationTriggered.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestTriggered);
-			PlayerController->OnSelectedWorldLocationCompleted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestCompleted);
+			//PlayerController->OnSelectedWorldLocationStarted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestStarted);
+			//PlayerController->OnSelectedWorldLocationTriggered.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestTriggered);
+			//PlayerController->OnSelectedWorldLocationCompleted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestCompleted);
 		}
 	}
 }
 
-void AMM_GameMode_ManagerMode::SpawnTerrainManager(AMM_PlayerController* PlayerController)
+void AMM_GameMode_ManagerMode::SpawnTerrainManager(const AMM_PlayerController* PlayerController)
 {
 	if (TerrainManager)
 	{

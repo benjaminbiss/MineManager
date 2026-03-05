@@ -16,7 +16,7 @@ void AMM_TaskManager::Tick(float DeltaTime)
 
 }
 
-void AMM_TaskManager::HandleDigTaskRequestStarted(FVector WorldPosition, bool bPressed)
+void AMM_TaskManager::HandleDigTaskRequestStarted(const FVector& WorldPosition, const bool bPressed)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dig task request Started at world position: %s"), *WorldPosition.ToString());
 	InitialCursorGridCoords = GridManager->WorldPosToGridCoords(WorldPosition);
@@ -25,13 +25,13 @@ void AMM_TaskManager::HandleDigTaskRequestStarted(FVector WorldPosition, bool bP
 	CreatePreviewDigTasks(InitialCursorGridCoords);
 }
 
-void AMM_TaskManager::HandleDigTaskRequestTriggered(FVector WorldPosition, bool bPressed)
+void AMM_TaskManager::HandleDigTaskRequestTriggered(const FVector& WorldPosition, const bool bPressed)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dig task request Updated at world position: %s"), *WorldPosition.ToString());
 	CreatePreviewDigTasks(GridManager->WorldPosToGridCoords(WorldPosition));
 }
 
-void AMM_TaskManager::HandleDigTaskRequestCompleted(FVector WorldPosition, bool bPressed)
+void AMM_TaskManager::HandleDigTaskRequestCompleted(const FVector& WorldPosition, const bool bPressed)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dig task request Finished at world position: %s"), *WorldPosition.ToString());
 	CreatePreviewDigTasks(GridManager->WorldPosToGridCoords(WorldPosition));
@@ -69,24 +69,40 @@ void AMM_TaskManager::CreatePreviewDigTasks(const FVector& GridPosition)
 	if (!DigTaskClass)
 		return;
 
-	int32 MinY = InitialCursorGridCoords.Y;
-	int32 MinX = InitialCursorGridCoords.X;
-	int32 MaxY = GridPosition.Y;
-	int32 MaxX = GridPosition.X;
-	for (int32 y = MinY; y < MaxY; y++)
+	const int32 MinY = FMath::Min(InitialCursorGridCoords.Y, GridPosition.Y);
+	const int32 MinX = FMath::Min(InitialCursorGridCoords.X, GridPosition.X);
+	const int32 MaxY = FMath::Max(InitialCursorGridCoords.Y, GridPosition.Y);
+	const int32 MaxX = FMath::Max(InitialCursorGridCoords.X, GridPosition.X);
+	// Find all grid positions within the rectangle defined by InitialCursorGridCoords and GridPosition
+	TArray<FVector> CurrentPreviewGridPositions;
+	for (int32 y = MinY; y <= MaxY; y++)
 	{
-		for (int32 x = MinX; x < MaxX; x++)
+		for (int32 x = MinX; x <= MaxX; x++)
 		{
 			FVector CurrentGridPosition(x, y, InitialCursorGridCoords.Z);
-			if (!PreviewDigTasks.Contains(CurrentGridPosition))
-			{
-				FVector TaskLocation = GridManager->GridCoordsToWorldPos(CurrentGridPosition);
-				AMM_DigTask* NewTask = GetWorld()->SpawnActor<AMM_DigTask>(DigTaskClass, TaskLocation, FRotator::ZeroRotator);
-				if (NewTask)
-				{
-					PreviewDigTasks.Add(CurrentGridPosition, NewTask);
-				}
-			}
+			CurrentPreviewGridPositions.Add(CurrentGridPosition);
 		}
 	}	
+	// Remove preview tasks that are no longer in the current preview area
+	for (auto& Task : PreviewDigTasks)
+	{
+		if (!CurrentPreviewGridPositions.Contains(Task.Key))
+		{
+			Task.Value->Destroy();
+			PreviewDigTasks.Remove(Task.Key);
+		}
+	}
+	// Add preview tasks for new grid positions in the current preview area
+	for (const FVector& CurrentGridPosition : CurrentPreviewGridPositions)
+	{
+		if (!PreviewDigTasks.Contains(CurrentGridPosition))
+		{
+			FVector TaskLocation = GridManager->GridCoordsToWorldPos(CurrentGridPosition);
+			AMM_DigTask* NewTask = GetWorld()->SpawnActor<AMM_DigTask>(DigTaskClass, TaskLocation, FRotator::ZeroRotator);
+			if (NewTask)
+			{
+				PreviewDigTasks.Add(CurrentGridPosition, NewTask);
+			}
+		}
+	}
 }

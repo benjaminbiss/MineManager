@@ -2,6 +2,8 @@
 
 #include "ProceduralMeshComponent.h"
 
+#include "TerrainSystem/FMM_CellData.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MM_TerrainChunk.generated.h"
@@ -43,6 +45,10 @@ protected:
 	TArray<float> SeededHeightMap;
 	UPROPERTY()
 	TArray<float> HeightDeltaMap;
+
+	// Chunk data
+	UPROPERTY()
+	TArray<FMM_CellData> Cells;
 
 public:	
 	void GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 TriSize, float NoiseScale, float HeightMultiplier, TArray<float> InHeightDeltaMap);

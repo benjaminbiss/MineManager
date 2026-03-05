@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZoomCameraInputSignature, float, Va
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSelectInputSignature, bool, bPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSecondarySelectInputSignature, bool, bPressed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRotateHoldInputSignature, bool, bPressed);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedWorldLocationInputSignature, FVector, WorldLocation, bool, bPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedWorldLocationInputSignature, const FVector&, WorldLocation, const bool, bPressed);
 
 UCLASS()
 class MINEMANAGER_API AMM_PlayerController : public APlayerController

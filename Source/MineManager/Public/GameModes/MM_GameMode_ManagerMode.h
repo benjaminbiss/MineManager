@@ -21,8 +21,8 @@ protected:
 	void SetupLevel();
 	void SpawnManagers();
 	void SpawnWorkerManager();
-	void SpawnTaskManager(class AMM_PlayerController* PlayerController);
-	void SpawnTerrainManager(class AMM_PlayerController* PlayerController);
+	void SpawnTaskManager(const class AMM_PlayerController* PlayerController);
+	void SpawnTerrainManager(const class AMM_PlayerController* PlayerController);
 	void SpawnGridManager();
 
 public:

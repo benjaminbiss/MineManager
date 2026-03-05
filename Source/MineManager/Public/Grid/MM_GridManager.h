@@ -11,10 +11,10 @@ class MINEMANAGER_API AMM_GridManager : public AActor
 	
 public:	
 	AMM_GridManager();
-	void InitializeGridParameters(int32 InWorldGridDimensionsInCells, int32 InCellSize);
-	FVector WorldPosToGridCoords(FVector WorldPosition) const;
-	FVector WorldPosAlignedToGrid(FVector WorldPosition) const;
-	FVector GridCoordsToWorldPos(FVector GridPosition) const;
+	void InitializeGridParameters(const int32 InWorldGridDimensionsInCells, const int32 InCellSize);
+	FVector WorldPosToGridCoords(const FVector& WorldPosition) const;
+	FVector WorldPosAlignedToGrid(const FVector& WorldPosition) const;
+	FVector GridCoordsToWorldPos(const FVector& GridPosition) const;
 
 protected:
 	virtual void BeginPlay() override;

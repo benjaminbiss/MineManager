@@ -14,24 +14,24 @@ class MINEMANAGER_API AMM_TerrainManager : public AActor
 	
 public:	
 	AMM_TerrainManager();
-	void InitializeTerrainParameters(int32 InMapDimensionsInChunks, int32 InChunkDimensionsInCells, int32 InCellSize, int32 InSeed, float InNoiseScale, float InHeightMultiplier);
+	void InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize, const int32 InSeed, const float InNoiseScale, const float InHeightMultiplier);
 	void GenerateTerrain();
 	
 	FVector GetTerrainCenter() const;
 
 protected:
 	virtual void BeginPlay() override;
-	void CreateChunk(FIntPoint ChunkCoord);
+	void CreateChunk(const FIntPoint ChunkCord);
 	void CreateChunkArray();
 	// Any World Position converted to the nearest vertex position, and the corresponding chunk coordinate
-	void WorldToChunkLocation(FVector WorldPosition, TArray<FIntPoint>& OutChunkCoords, TArray<FIntPoint>& OutVertexCoords);
+	void WorldToChunkLocation(FVector WorldPosition, TArray<FIntPoint>& OutChunkCoords, TArray<FIntPoint>& OutVertexCoords) const;
 	// Grid position corresponds to the index of the vertex at the cells lower left corner, returns a map of the cell's 4 vertices and their corresponding chunk coordinates
-	void GridToCellLocation(FIntPoint GridPosition, FIntPoint& OutCellCoord);
+	void GridToCellLocation(FIntPoint GridPosition, FIntPoint& OutCellCord);
 	void GridToVertices(FIntPoint GridPosition, TMap<FIntPoint, FIntPoint>& VertexAndChunkCoords);
 
 
 	UFUNCTION()
-	void ChangeVertexHeight(FVector WorldPosition, bool bRaise);
+	void ChangeVertexHeight(const FVector& WorldPosition, const bool bRaise);
 
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	TSubclassOf<class AMM_TerrainChunk> TerrainChunkClass;

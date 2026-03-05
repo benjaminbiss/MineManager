@@ -16,11 +16,11 @@ public:
 	AMM_TaskManager();
 	virtual void Tick(float DeltaTime) override;
 	UFUNCTION()	
-	void HandleDigTaskRequestStarted(FVector GridPosition, bool bPressed);
+	void HandleDigTaskRequestStarted(const FVector& WorldPosition, const bool bPressed);
 	UFUNCTION()
-	void HandleDigTaskRequestTriggered(FVector GridPosition, bool bPressed);
+	void HandleDigTaskRequestTriggered(const FVector& WorldPosition, const bool bPressed);
 	UFUNCTION()
-	void HandleDigTaskRequestCompleted(FVector GridPosition, bool bPressed);
+	void HandleDigTaskRequestCompleted(const FVector& WorldPosition, const bool bPressed);
 
 
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
