@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EMM_CellGeologyType.h"
+
 #include "CoreMinimal.h"
 #include "FMM_CellLayer.generated.h"
 
@@ -9,7 +11,7 @@ struct MINEMANAGER_API FMM_CellLayer
 	GENERATED_BODY()
 
     UPROPERTY()
-    FName LayerType;
+    EMM_CellGeologyType CellGeoType;
 
     UPROPERTY()
     int32 Depth;

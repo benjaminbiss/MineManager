@@ -8,11 +8,11 @@ AMM_TerrainManager::AMM_TerrainManager()
 
 }
 
-FVector AMM_TerrainManager::GetTerrainCenter() const
+void AMM_TerrainManager::GetTerrainCenter(FVector& OutWorldPosition) const
 {
-	const float CenterX = (MapDimensionsInChunks * ChunkDimensionsInUnits) / 2.0f;
-	const float CenterY = (MapDimensionsInChunks * ChunkDimensionsInUnits) / 2.0f;
-	return FVector(CenterX, CenterY, 0);
+	OutWorldPosition.X = (MapDimensionsInChunks * ChunkDimensionsInUnits) / 2.0f;
+	OutWorldPosition.Y = (MapDimensionsInChunks * ChunkDimensionsInUnits) / 2.0f;
+	OutWorldPosition.Z = 0;
 }
 
 void AMM_TerrainManager::BeginPlay()
@@ -37,27 +37,37 @@ void AMM_TerrainManager::GenerateTerrain()
 	CreateChunkArray();
 }
 
-void AMM_TerrainManager::CreateChunk(const FIntPoint ChunkCord)
+void AMM_TerrainManager::CreateChunk(const FVector ChunkCord, UMaterialInstanceDynamic* TerrainMID)
 {
 	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * ChunkDimensionsInUnits, ChunkCord.Y * ChunkDimensionsInUnits, 0), FRotator::ZeroRotator);
 	if (NewChunk)
 	{
 		TerrainChunks.Add(NewChunk);	
 		NewChunk->SetOwner(this);
-		NewChunk->ChunkCoord = ChunkCord;
+		NewChunk->ChunkCord = ChunkCord;
 		const TArray<float> HeightDeltaMap; // This value will be loaded from save data, this is the persistence height deformation information
-		NewChunk->GenerateSquareMesh(Seed, ChunkDimensionsInCells + 1, CellSize, NoiseScale, HeightMultiplier, HeightDeltaMap);
+		NewChunk->GenerateChunkMesh(Seed, ChunkDimensionsInCells + 1, CellSize, NoiseScale, HeightMultiplier, HeightDeltaMap, TerrainMID);
+	
 	}
 }
 
 void AMM_TerrainManager::CreateChunkArray()
 {
-	for (int32 y = 0; y < MapDimensionsInChunks; y++)
+	if (TerrainMaterial)
 	{
-		for (int32 x = 0; x < MapDimensionsInChunks; x++)
+		UMaterialInstanceDynamic* TerrainMID = UMaterialInstanceDynamic::Create(TerrainMaterial, this);
+		TerrainMID->SetScalarParameterValue("CellSize", CellSize);
+		TerrainMID->SetScalarParameterValue("LineThickness", 0.035f);
+		TerrainMID->SetScalarParameterValue("GridOpacity", 8.f);
+		TerrainMID->SetVectorParameterValue("GridColor", FLinearColor::Black);
+
+		for (int32 y = 0; y < MapDimensionsInChunks; y++)
 		{
-			const FIntPoint ChunkCord(x, y);
-			CreateChunk(ChunkCord);
+			for (int32 x = 0; x < MapDimensionsInChunks; x++)
+			{
+				const FVector ChunkCord(x, y, 0);
+				CreateChunk(ChunkCord, TerrainMID);
+			}
 		}
 	}
 }
@@ -141,16 +151,6 @@ void AMM_TerrainManager::WorldToChunkLocation(FVector WorldPosition, TArray<FInt
 	}
 }
 
-void AMM_TerrainManager::GridToCellLocation(FIntPoint GridPosition, FIntPoint& OutCellCord)
-{
-
-}
-
-void AMM_TerrainManager::GridToVertices(FIntPoint GridPosition, TMap<FIntPoint, FIntPoint>& VertexAndChunkCoords)
-{
-
-}
-
 void AMM_TerrainManager::ChangeVertexHeight(const FVector& WorldPosition, const bool bRaise)
 {
 	TArray<FIntPoint> ChunkCoords, VertexCoords;
@@ -162,6 +162,6 @@ void AMM_TerrainManager::ChangeVertexHeight(const FVector& WorldPosition, const 
 			continue;
 		
 		AMM_TerrainChunk* TargetChunk = TerrainChunks[ChunkCoords[i].Y * MapDimensionsInChunks + ChunkCoords[i].X];
-		TargetChunk->ApplyDeformationToHeightDeltaMap(VertexCoords[i], bRaise);
+		//TargetChunk->ApplyDeformationToHeightDeltaMap(VertexCoords[i], bRaise);
 	}
 }

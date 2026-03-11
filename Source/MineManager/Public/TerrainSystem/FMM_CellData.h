@@ -9,6 +9,9 @@ USTRUCT(BlueprintType)
 struct MINEMANAGER_API FMM_CellData
 {
 	GENERATED_BODY()
+	
+	UPROPERTY()
+	int32 Index;
 
 	UPROPERTY()
 	TArray<FMM_CellLayer> CellLayers;

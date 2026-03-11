@@ -3,8 +3,6 @@
 #include "KismetProceduralMeshLibrary.h"
 #include "NavigationSystem.h"
 
-#include "ThirdParty/FastNoiseLite.h"
-
 AMM_TerrainChunk::AMM_TerrainChunk()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -25,37 +23,51 @@ void AMM_TerrainChunk::BeginPlay()
 	
 }
 
-void AMM_TerrainChunk::GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 TriSize, float NoiseScale, float HeightMultiplier, TArray<float> InHeightDeltaMap)
+void AMM_TerrainChunk::GenerateChunkMesh(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier, const TArray<float>& InHeightDeltaMap, UMaterialInstanceDynamic* TerrainMidInst)
 {
+	// Set the material parameter for the chunk's material instance dynamic
+    TerrainMID = TerrainMidInst;
+    ChunkDimensions = Dimensions;
+
     // 1. Setup Empty Data
     Vertices.Empty();
     Triangles.Empty();
     UVs.Empty();
     Normals.Empty();
     Tangents.Empty();
-	// 2. Generate Verticies and Apply Height Delta Map
-	GenerateHeightMap(Seed, Dimensions, TriSize, NoiseScale, HeightMultiplier);
-	SetupHeightDeltaMap(InHeightDeltaMap);
-	UpdateMeshWithHeightDeltaMap();
+
+	// 2. Generate Vertices
+    Vertices.Empty();
+    UVs.Empty();
+
+    for (int32 y = 0; y < ChunkDimensions; y++)
+    {
+        for (int32 x = 0; x < ChunkDimensions; x++)
+        {
+            Vertices.Add(FVector(x * TriSize, y * TriSize, 0));
+            UVs.Add(FVector2D(static_cast<float>(x) / (ChunkDimensions - 1), static_cast<float>(y) / (ChunkDimensions - 1)));
+        }
+    }
+
 	// 3. Generate Triangles
     for (int32 y = 0; y < ChunkDimensions - 1; y++)
     {
         for (int32 x = 0; x < ChunkDimensions - 1; x++)
         {
-            int32 i0 = (y * ChunkDimensions) + x;
-            int32 i1 = i0 + 1;
-            int32 i2 = i0 + ChunkDimensions;
-            int32 i3 = i2 + 1;
+            int32 I0 = (y * ChunkDimensions) + x;
+            int32 I1 = I0 + 1;
+            int32 I2 = I0 + ChunkDimensions;
+            int32 I3 = I2 + 1;
 
             // First triangle
-            Triangles.Add(i0);
-            Triangles.Add(i2);
-            Triangles.Add(i1);
+            Triangles.Add(I0);
+            Triangles.Add(I2);
+            Triangles.Add(I1);
 
             // Second triangle
-            Triangles.Add(i1);
-            Triangles.Add(i2);
-            Triangles.Add(i3);
+            Triangles.Add(I1);
+            Triangles.Add(I2);
+            Triangles.Add(I3);
         }
     }
 	// 4. Calculate normals and tangents for proper lighting
@@ -66,7 +78,7 @@ void AMM_TerrainChunk::GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 Tr
         Normals,
         Tangents
     );
-    // 5. Create the mesh section 
+    // 5. Create the mesh section and apply material
     Mesh->CreateMeshSection_LinearColor(
         0,
         Vertices,
@@ -77,6 +89,11 @@ void AMM_TerrainChunk::GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 Tr
         Tangents,
         true // enable collision
     );
+    if (TerrainMID)
+    {
+        TerrainMID->SetVectorParameterValue("ChunkOrigin", ChunkCord);
+		Mesh->SetMaterial(0, TerrainMID);
+    }
     // 6. Set collision behavior
     //Mesh->bUseComplexAsSimpleCollision = true;
     Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -90,10 +107,10 @@ void AMM_TerrainChunk::GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 Tr
     Mesh->MarkRenderStateDirty();
     Mesh->RecreatePhysicsState();
     // 9. Register with navigation system
-    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-    if (NavSys)
+    UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (NavigationSystem)
     {
-        NavSys->OnComponentRegistered(Mesh);
+        NavigationSystem->OnComponentRegistered(Mesh);
         FTimerHandle Timer;
         GetWorld()->GetTimerManager().SetTimer(
             Timer,
@@ -105,60 +122,60 @@ void AMM_TerrainChunk::GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 Tr
     }
 }
 
-void AMM_TerrainChunk::GenerateHeightMap(int32 Seed, int32 Dimensions, int32 TriSize, float NoiseScale, float HeightMultiplier)
+//void AMM_TerrainChunk::GenerateHeightMap(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier)
+//{
+//	  ChunkDimensions = Dimensions;
+//
+//    FastNoiseLite Noise;
+//    Noise.SetSeed(Seed);
+//    Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+//    Noise.SetFrequency(NoiseScale);
+//
+//    Vertices.Empty();
+//    UVs.Empty();
+//
+//    for (int32 y = 0; y < ChunkDimensions; y++)
+//    {
+//        for (int32 x = 0; x < ChunkDimensions; x++)
+//        {
+//            const float GlobalX = (ChunkCord.X * (ChunkDimensions - 1) + x);
+//            const float GlobalY = (ChunkCord.Y * (ChunkDimensions - 1) + y);
+//
+//            const float NoiseValue = Noise.GetNoise(GlobalX, GlobalY);
+//            float Height = NoiseValue * HeightMultiplier;
+//            SeededHeightMap.Add(Height);
+//
+//            Vertices.Add(FVector(x * TriSize, y * TriSize, Height));
+//            UVs.Add(FVector2D(static_cast<float>(x) / (ChunkDimensions - 1), static_cast<float>(y) / (ChunkDimensions - 1)));
+//        }
+//    }
+//}
+//
+//void AMM_TerrainChunk::SetupHeightDeltaMap(const TArray<float>& InHeightDeltaMap)
+//{
+//    // Create a new height delta map if the input is empty or has a different size
+//    if (InHeightDeltaMap.IsEmpty() || InHeightDeltaMap.Num() != Vertices.Num())
+//    {		
+//        for (int32 i = 0; i < Vertices.Num(); i++)
+//        {
+//            HeightDeltaMap.Add(0.0f);
+//		}
+//        return;
+//	}
+//	HeightDeltaMap = InHeightDeltaMap;
+//}
+//
+//void AMM_TerrainChunk::UpdateMeshWithHeightDeltaMap()
+//{
+//    for (int32 i = 0; i < Vertices.Num(); i++)
+//    {
+//		UpdateVertexHeight(i, HeightDeltaMap[i]);
+//    }
+//}
+
+void AMM_TerrainChunk::UpdateVertexHeight(const int32 VertexIndex, float HeightDelta)
 {
-	ChunkDimensions = Dimensions;
-
-    FastNoiseLite Noise;
-    Noise.SetSeed(Seed);
-    Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    Noise.SetFrequency(NoiseScale);
-
-    Vertices.Empty();
-    UVs.Empty();
-
-    for (int32 y = 0; y < ChunkDimensions; y++)
-    {
-        for (int32 x = 0; x < ChunkDimensions; x++)
-        {
-            float GlobalX = (ChunkCoord.X * (ChunkDimensions - 1) + x);
-            float GlobalY = (ChunkCoord.Y * (ChunkDimensions - 1) + y);
-
-            float NoiseValue = Noise.GetNoise(GlobalX, GlobalY);
-            float Height = NoiseValue * HeightMultiplier;
-            SeededHeightMap.Add(Height);
-
-            Vertices.Add(FVector(x * TriSize, y * TriSize, Height));
-            UVs.Add(FVector2D((float)x / (ChunkDimensions - 1), (float)y / (ChunkDimensions - 1)));
-        }
-    }
-}
-
-void AMM_TerrainChunk::SetupHeightDeltaMap(TArray<float> InHeightDeltaMap)
-{
-    // Create a new height delta map if the input is empty or has a different size
-    if (InHeightDeltaMap.IsEmpty() || InHeightDeltaMap.Num() != Vertices.Num())
-    {		
-        for (int32 i = 0; i < Vertices.Num(); i++)
-        {
-            HeightDeltaMap.Add(0.0f);
-		}
-        return;
-	}
-	HeightDeltaMap = InHeightDeltaMap;
-}
-
-void AMM_TerrainChunk::UpdateMeshWithHeightDeltaMap()
-{
-    for (int32 i = 0; i < Vertices.Num(); i++)
-    {
-		UpdateVertexHeight(i, HeightDeltaMap[i]);
-    }
-}
-
-void AMM_TerrainChunk::UpdateVertexHeight(int32 VertexIndex, float HeightDelta)
-{
-    Vertices[VertexIndex].Z = SeededHeightMap[VertexIndex] + HeightDeltaMap[VertexIndex];
+    //Vertices[VertexIndex].Z = SeededHeightMap[VertexIndex] + HeightDeltaMap[VertexIndex];
 }
 
 void AMM_TerrainChunk::CalculateMesh()
@@ -204,19 +221,25 @@ void AMM_TerrainChunk::RecalculateMesh()
     );    
 }
 
-void AMM_TerrainChunk::UpdateMeshNavigation()
+void AMM_TerrainChunk::UpdateMeshNavigation() const
 {
-    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-    if (NavSys)
+    UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (NavigationSystem)
     {
-        NavSys->UpdateComponentInNavOctree(*Mesh);
+        NavigationSystem->UpdateComponentInNavOctree(*Mesh);
 	}
 }
 
-void AMM_TerrainChunk::ApplyDeformationToHeightDeltaMap(FIntPoint VertCoord, bool bRaise)
-{
-	int32 index = VertCoord.Y * ChunkDimensions + VertCoord.X;
-	HeightDeltaMap[index] += bRaise ? 25.0f : -25.0f;
-	UpdateVertexHeight(index, HeightDeltaMap[index]);
-    CalculateMesh();
-}
+//void AMM_TerrainChunk::ApplyDeformationToHeightDeltaMap(const FIntPoint VertCord, const bool bRaise)
+//{
+//	int32 index = VertCord.Y * ChunkDimensions + VertCord.X;
+//	HeightDeltaMap[index] += bRaise ? 25.0f : -25.0f;
+//	UpdateVertexHeight(index, HeightDeltaMap[index]);
+//    CalculateMesh();
+//}
+
+//void AMM_TerrainChunk::GetHeightAtPoint(const FIntPoint& VertCord, int32& OutHeight) const
+//{
+//    int32 index = VertCord.Y * ChunkDimensions + VertCord.X;
+//	OutHeight = Vertices[index].Z;
+//}

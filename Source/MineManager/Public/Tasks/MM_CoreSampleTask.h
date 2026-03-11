@@ -2,15 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MM_DigTask.generated.h"
+#include "MM_CoreSampleTask.generated.h"
 
 UCLASS()
-class MINEMANAGER_API AMM_DigTask : public AActor
+class MINEMANAGER_API AMM_CoreSampleTask : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	AMM_DigTask();
+	AMM_CoreSampleTask();
 
 protected:
 	virtual void BeginPlay() override;

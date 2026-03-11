@@ -6,9 +6,10 @@
 
 class AMM_WorkerManager;
 class AMM_TaskManager;
+class AMM_WorldData;
+class AMM_WorldDataVisualizer;
 class AMM_TerrainManager;
 class AMM_GridManager;
-class APlayerStart;
 
 UCLASS()
 class MINEMANAGER_API AMM_GameMode_ManagerMode : public AGameModeBase
@@ -20,23 +21,24 @@ protected:
 
 	void SetupLevel();
 	void SpawnManagers();
-	void SpawnWorkerManager();
-	void SpawnTaskManager(const class AMM_PlayerController* PlayerController);
-	void SpawnTerrainManager(const class AMM_PlayerController* PlayerController);
+	void SpawnWorldData();
+	void SpawnWorldDataVisualizer();
+	void SpawnTerrainManager();
 	void SpawnGridManager();
+	void SpawnWorkerManager();
+	void SpawnTaskManager();
 
 public:
-	// Worker Manager
+	// World Data
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_WorkerManager> WorkerManager;
+	TSubclassOf<AMM_WorldData> WorldData;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
-	AMM_WorkerManager* WorkerManagerInstance;
-
-	// Task Manager
+	AMM_WorldData* WorldDataInstance;
+	// World Data Visualizer
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_TaskManager> TaskManager;
+	TSubclassOf<AMM_WorldDataVisualizer> WorldDataVisualizer;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
-	AMM_TaskManager* TaskManagerInstance;
+	AMM_WorldDataVisualizer* WorldDataVisualizerInstance;
 
 	// Terrain Manager
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
@@ -50,6 +52,18 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
 	AMM_GridManager* GridManagerInstance;
 
+	// Worker Manager
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
+	TSubclassOf<AMM_WorkerManager> WorkerManager;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
+	AMM_WorkerManager* WorkerManagerInstance;
+
+	// Task Manager
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
+	TSubclassOf<AMM_TaskManager> TaskManager;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
+	AMM_TaskManager* TaskManagerInstance;
+
 	// World Parameters
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
 	int32 ChunkDimensionsInCells = 32;
@@ -58,9 +72,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
 	int32 MapDimensionsInChunks = 3;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	int32 WorldDepth = 96;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
 	int32 Seed = 11;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
 	float NoiseScale = 0.02f;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
-	float HeightMultiplier = 400.f;
+	float SurfaceHeightMultiplier = 800.f;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	float SubsurfaceHeightOffset = 400.f;
 };

@@ -1,6 +1,6 @@
-#include "Tasks/MM_DigTask.h"
+#include "Tasks/MM_CoreSampleTask.h"
 
-AMM_DigTask::AMM_DigTask()
+AMM_CoreSampleTask::AMM_CoreSampleTask()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -11,8 +11,9 @@ AMM_DigTask::AMM_DigTask()
 	Mesh->SetupAttachment(Root);
 }
 
-void AMM_DigTask::BeginPlay()
+void AMM_CoreSampleTask::BeginPlay()
 {
 	Super::BeginPlay();
-		
+	
 }
+

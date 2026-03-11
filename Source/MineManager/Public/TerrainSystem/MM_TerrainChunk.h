@@ -2,8 +2,6 @@
 
 #include "ProceduralMeshComponent.h"
 
-#include "TerrainSystem/FMM_CellData.h"
-
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MM_TerrainChunk.generated.h"
@@ -18,18 +16,14 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void GenerateHeightMap(int32 Seed, int32 Dimensions, int32 TriSize, float NoiseScale, float HeightMultiplier);
-	void SetupHeightDeltaMap(TArray<float> InHeightDeltaMap);
-	void UpdateMeshWithHeightDeltaMap();
-	void UpdateVertexHeight(int32 VertexIndex, float HeightDelta);
+	//void GenerateHeightMap(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier);
+	//void SetupHeightDeltaMap(const TArray<float>& InHeightDeltaMap);
+	//void UpdateMeshWithHeightDeltaMap();
+	void UpdateVertexHeight(const int32 VertexIndex, float HeightDelta);
 	void CalculateMesh(); // Complete mesh generation including collision
 	void RecalculateMesh(); // Purley visual mesh update without collision mesh regeneration, for better performance when applying small deformations
-	void UpdateMeshNavigation();
+	void UpdateMeshNavigation() const;
 
-	// Mesh data
-public:
-	UPROPERTY()
-	UProceduralMeshComponent* Mesh;
 protected:
 	UPROPERTY()
 	TArray<int32> Triangles;
@@ -41,21 +35,26 @@ protected:
 	TArray<FVector> Normals;
 	UPROPERTY()
 	TArray<FProcMeshTangent> Tangents;	
-	UPROPERTY()
-	TArray<float> SeededHeightMap;
-	UPROPERTY()
-	TArray<float> HeightDeltaMap;
+	//UPROPERTY()
+	//TArray<float> SeededHeightMap;
+	//UPROPERTY()
+	//TArray<float> HeightDeltaMap;
 
 	// Chunk data
-	UPROPERTY()
-	TArray<FMM_CellData> Cells;
+	//UPROPERTY()
+	//TArray<FMM_CellData> Cells;
 
 public:	
-	void GenerateSquareMesh(int32 Seed, int32 Dimensions, int32 TriSize, float NoiseScale, float HeightMultiplier, TArray<float> InHeightDeltaMap);
-	void ApplyDeformationToHeightDeltaMap(FIntPoint VertCoord, bool bRaise);
+	void GenerateChunkMesh(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier, const TArray<float>& InHeightDeltaMap, UMaterialInstanceDynamic* TerrainMidInst);
+	//void ApplyDeformationToHeightDeltaMap(const FIntPoint VertCord, const bool bRaise);
+	//void GetHeightAtPoint(const FIntPoint& VertCord, int32& OutHeight) const;
 
 	UPROPERTY()
-	FIntPoint ChunkCoord;
-	UPROPERTY()
+	UProceduralMeshComponent* Mesh;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Material")
+	UMaterialInstanceDynamic* TerrainMID;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|ChunkInfo")
+	FVector ChunkCord;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|ChunkInfo")
 	int32 ChunkDimensions;
 };

@@ -1,13 +1,15 @@
 #include "GameModes/MM_GameMode_ManagerMode.h"
 
-#include "EngineUtils.h"
-#include "GameFramework/PlayerStart.h"
-
 #include "Controllers/MM_PlayerController.h"
-#include "Entities/Workers/MM_WorkerManager.h"
-#include "Tasks/MM_TaskManager.h"
+
+#include "TerrainSystem/MM_WorldData.h"
+#include "TerrainSystem/MM_WorldDataVisualizer.h"
 #include "TerrainSystem/MM_TerrainManager.h"
-#include "Grid/MM_GridManager.h"
+#include "TerrainSystem/MM_GridManager.h"
+
+#include "Entities/Workers/MM_WorkerManager.h"
+
+#include "Tasks/MM_TaskManager.h"
 
 void AMM_GameMode_ManagerMode::BeginPlay()
 {
@@ -25,10 +27,68 @@ void AMM_GameMode_ManagerMode::SpawnManagers()
 {
 	AMM_PlayerController* PlayerController = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
 
-	SpawnWorkerManager();
-	SpawnTerrainManager(PlayerController);
-	SpawnGridManager();
-	SpawnTaskManager(PlayerController);
+	SpawnWorldData();
+	SpawnWorldDataVisualizer();
+	//SpawnTerrainManager();
+	//SpawnGridManager();
+	//SpawnWorkerManager();
+	//SpawnTaskManager();
+}
+
+void AMM_GameMode_ManagerMode::SpawnWorldData()
+{
+	if (WorldData)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		WorldDataInstance = GetWorld()->SpawnActor<AMM_WorldData>(WorldData, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		WorldDataInstance->SetActorLabel(TEXT("World Data"));
+		WorldDataInstance->SetActorHiddenInGame(true);
+		WorldDataInstance->SetOwner(this);
+		WorldDataInstance->InitializeWorldDataParameters(ChunkDimensionsInCells, GridCellSize, MapDimensionsInChunks, WorldDepth, Seed, NoiseScale, SurfaceHeightMultiplier);
+	}
+}
+
+void AMM_GameMode_ManagerMode::SpawnWorldDataVisualizer()
+{
+	if (WorldDataVisualizer)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		WorldDataVisualizerInstance = GetWorld()->SpawnActor<AMM_WorldDataVisualizer>(WorldDataVisualizer, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		WorldDataVisualizerInstance->SetActorLabel(TEXT("World Data Visualizer"));
+		WorldDataVisualizerInstance->SetActorHiddenInGame(true);
+		WorldDataVisualizerInstance->SetOwner(this);
+	}
+}
+
+void AMM_GameMode_ManagerMode::SpawnTerrainManager()
+{
+	if (TerrainManager)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		TerrainManagerInstance = GetWorld()->SpawnActor<AMM_TerrainManager>(TerrainManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		TerrainManagerInstance->SetActorLabel(TEXT("Terrain Manager"));
+		TerrainManagerInstance->SetActorHiddenInGame(true);
+		TerrainManagerInstance->SetOwner(this);
+		TerrainManagerInstance->InitializeTerrainParameters(MapDimensionsInChunks, ChunkDimensionsInCells, GridCellSize, Seed, NoiseScale, SurfaceHeightMultiplier);
+		TerrainManagerInstance->GenerateTerrain();
+	}
+}
+
+void AMM_GameMode_ManagerMode::SpawnGridManager()
+{
+	if (GridManager)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		GridManagerInstance = GetWorld()->SpawnActor<AMM_GridManager>(GridManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		GridManagerInstance->SetActorLabel(TEXT("Grid Manager"));
+		GridManagerInstance->SetActorHiddenInGame(true);
+		GridManagerInstance->SetOwner(this);
+		GridManagerInstance->InitializeGridParameters(MapDimensionsInChunks * ChunkDimensionsInCells, GridCellSize);
+	}
 }
 
 void AMM_GameMode_ManagerMode::SpawnWorkerManager()
@@ -44,7 +104,7 @@ void AMM_GameMode_ManagerMode::SpawnWorkerManager()
 	}
 }
 
-void AMM_GameMode_ManagerMode::SpawnTaskManager(const AMM_PlayerController* PlayerController)
+void AMM_GameMode_ManagerMode::SpawnTaskManager()
 {
 	if (TaskManager)
 	{
@@ -57,48 +117,7 @@ void AMM_GameMode_ManagerMode::SpawnTaskManager(const AMM_PlayerController* Play
 
 		if (GridManagerInstance)
 		{
-			TaskManagerInstance->GridManager = GridManagerInstance;
+			//TaskManagerInstance->GridManager = GridManagerInstance;
 		}
-
-		if (PlayerController)
-		{
-			//PlayerController->OnSelectedWorldLocationStarted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestStarted);
-			//PlayerController->OnSelectedWorldLocationTriggered.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestTriggered);
-			//PlayerController->OnSelectedWorldLocationCompleted.AddDynamic(TaskManagerInstance, &AMM_TaskManager::HandleDigTaskRequestCompleted);
-		}
-	}
-}
-
-void AMM_GameMode_ManagerMode::SpawnTerrainManager(const AMM_PlayerController* PlayerController)
-{
-	if (TerrainManager)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		TerrainManagerInstance = GetWorld()->SpawnActor<AMM_TerrainManager>(TerrainManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		TerrainManagerInstance->SetActorLabel(TEXT("Terrain Manager"));
-		TerrainManagerInstance->SetActorHiddenInGame(true);
-		TerrainManagerInstance->SetOwner(this);
-		TerrainManagerInstance->InitializeTerrainParameters(MapDimensionsInChunks, ChunkDimensionsInCells, GridCellSize, Seed, NoiseScale, HeightMultiplier);
-		TerrainManagerInstance->GenerateTerrain();
-
-		if (PlayerController)
-		{
-			PlayerController->GetPawn()->SetActorLocation(TerrainManagerInstance->GetTerrainCenter());
-		}
-	}
-}
-
-void AMM_GameMode_ManagerMode::SpawnGridManager()
-{
-	if (GridManager)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GridManagerInstance = GetWorld()->SpawnActor<AMM_GridManager>(GridManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		GridManagerInstance->SetActorLabel(TEXT("Grid Manager"));
-		GridManagerInstance->SetActorHiddenInGame(true);
-		GridManagerInstance->SetOwner(this);
-		GridManagerInstance->InitializeGridParameters(MapDimensionsInChunks * ChunkDimensionsInCells, GridCellSize);
 	}
 }
