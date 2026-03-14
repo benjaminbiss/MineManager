@@ -1,7 +1,5 @@
 #include "TerrainSystem/MM_WorldData.h"
 
-#include "ThirdParty/FastNoiseLite.h"
-
 AMM_WorldData::AMM_WorldData()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -40,36 +38,36 @@ void AMM_WorldData::CreateWorldGeologyInformation()
 
 void AMM_WorldData::CreateSurfaceHeightMap()
 {
-    FastNoiseLite Noise;
-    Noise.SetSeed(Seed);
-    Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    Noise.SetFrequency(NoiseScale);
+    //FastNoiseLite Noise;
+    //Noise.SetSeed(Seed);
+    //Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    //Noise.SetFrequency(NoiseScale);
 
     for (int32 y = 0; y < GridSize; y++)
     {
         for (int32 x = 0; x < GridSize; x++)
         {
-            const float NoiseValue = Noise.GetNoise(x, y);
-            float Height = NoiseValue * SurfaceHeightMultiplier;
-            SurfaceHeightMap.Add(Height);
+            //const float NoiseValue = Noise.GetNoise(x, y);
+            //float Height = NoiseValue * SurfaceHeightMultiplier;
+            //SurfaceHeightMap.Add(Height);
         }
     }
 }
 
 void AMM_WorldData::CreateSubsurfaceHeightMap()
 {
-	FastNoiseLite Noise;
+	/*FastNoiseLite Noise;
 	Noise.SetSeed(Seed + 1);
 	Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-	Noise.SetFrequency(NoiseScale + .01f);
+	Noise.SetFrequency(NoiseScale + .01f);*/
 
 	for (int32 y = 0; y < GridSize; y++)
 	{
 		for (int32 x = 0; x < GridSize; x++)
 		{
-			const float NoiseValue = Noise.GetNoise(x, y);
-			float Height = NoiseValue * SurfaceHeightMultiplier - SubsurfaceHeightOffset;
-			SurfaceHeightMap.Add(Height);
+			//const float NoiseValue = Noise.GetNoise(x, y);
+			//float Height = NoiseValue * SurfaceHeightMultiplier - SubsurfaceHeightOffset;
+			//SurfaceHeightMap.Add(Height);
 		}
 	}
 }

@@ -6,6 +6,7 @@ UENUM(BlueprintType)
 enum class EMM_CellGeologyType : uint8
 {
     Empty,
+    CoverSoil,
     Overburden,
     Rock,
     BlastedRock,

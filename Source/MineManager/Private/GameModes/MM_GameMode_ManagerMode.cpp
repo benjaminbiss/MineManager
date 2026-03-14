@@ -45,7 +45,7 @@ void AMM_GameMode_ManagerMode::SpawnWorldData()
 		WorldDataInstance->SetActorLabel(TEXT("World Data"));
 		WorldDataInstance->SetActorHiddenInGame(true);
 		WorldDataInstance->SetOwner(this);
-		WorldDataInstance->InitializeWorldDataParameters(ChunkDimensionsInCells, GridCellSize, MapDimensionsInChunks, WorldDepth, Seed, NoiseScale, SurfaceHeightMultiplier);
+		WorldDataInstance->InitializeWorldDataParameters(ChunkDimensionsInCells, GridCellSize, MapDimensionsInChunks, WorldDepth, Seed, NoiseScale, SurfaceHeightMultiplier, SubsurfaceHeightOffset);
 	}
 }
 
