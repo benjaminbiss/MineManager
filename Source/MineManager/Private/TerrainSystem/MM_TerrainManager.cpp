@@ -64,13 +64,14 @@ void AMM_TerrainManager::CreateChunkArray()
 
 void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord, UMaterialInstanceDynamic* TerrainMaterialInst)
 {
-	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * ChunkDimensionsInUnits, ChunkCord.Y * ChunkDimensionsInUnits, 0), FRotator::ZeroRotator);
+	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * (ChunkDimensionsInUnits + CellSize), ChunkCord.Y * (ChunkDimensionsInUnits + CellSize), 0), FRotator::ZeroRotator);
 	if (NewChunk)
 	{
 		TerrainChunks.Add(NewChunk);
 		NewChunk->SetOwner(this);
 		NewChunk->ChunkCord = ChunkCord;
-		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells, CellSize, TerrainMaterialInst);
+		// ChunkDimensionsInCells + 1 because the terrain manager needs to generate height values for the neighboring chunks in order to ensure seamless height values across chunk borders
+		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells + 1, CellSize, TerrainMaterialInst);
 	}
 }
 

@@ -68,6 +68,7 @@ void AMM_SurfacePCGChunkGenerator::OnPCGGraphGenerated(UPCGComponent* InComponen
 
 				const TArray<FPCGPoint>& Points = FlattenedData->GetPoints();
 				const int32 NumPoints = Points.Num();
+				//UE_LOG(LogTemp, Log, TEXT("Number of points: %d"), NumPoints);
 				if (NumPoints == 0) continue;
 
 				// 1. Create the Accessor for the specific attribute name and type

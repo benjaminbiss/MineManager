@@ -48,7 +48,7 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
             UVs.Add(FVector2D(static_cast<float>(x) / (ChunkDimensions - 1), static_cast<float>(y) / (ChunkDimensions - 1)));
         }
     }
-
+	
 	// 3. Generate Triangles
     for (int32 y = 0; y < ChunkDimensions - 1; y++)
     {
