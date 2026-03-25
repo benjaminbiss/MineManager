@@ -25,11 +25,8 @@ void AMM_GameMode_ManagerMode::SetupLevel()
 
 void AMM_GameMode_ManagerMode::SpawnManagers()
 {
-	AMM_PlayerController* PlayerController = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
-
 	SpawnWorldData();
-	SpawnWorldDataVisualizer();
-	//SpawnTerrainManager();
+	SpawnTerrainManager();
 	//SpawnGridManager();
 	//SpawnWorkerManager();
 	//SpawnTaskManager();
@@ -45,20 +42,7 @@ void AMM_GameMode_ManagerMode::SpawnWorldData()
 		WorldDataInstance->SetActorLabel(TEXT("World Data"));
 		WorldDataInstance->SetActorHiddenInGame(true);
 		WorldDataInstance->SetOwner(this);
-		WorldDataInstance->InitializeWorldDataParameters(ChunkDimensionsInCells, GridCellSize, MapDimensionsInChunks, WorldDepth, Seed, NoiseScale, SurfaceHeightMultiplier, SubsurfaceHeightOffset);
-	}
-}
-
-void AMM_GameMode_ManagerMode::SpawnWorldDataVisualizer()
-{
-	if (WorldDataVisualizer)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		WorldDataVisualizerInstance = GetWorld()->SpawnActor<AMM_WorldDataVisualizer>(WorldDataVisualizer, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		WorldDataVisualizerInstance->SetActorLabel(TEXT("World Data Visualizer"));
-		WorldDataVisualizerInstance->SetActorHiddenInGame(true);
-		WorldDataVisualizerInstance->SetOwner(this);
+		WorldDataInstance->InitializeWorldDataParameters(ChunkSize, CellSize, MapSize, WorldDepth, Seed, SurfaceHeightMultiplier, SubsurfaceHeightMultiplier, SubsurfaceHeightOffset, CoalSeamThicknessThreshold, CoalSeamHeightOffset, CoalSeamDepth);
 	}
 }
 
@@ -72,8 +56,13 @@ void AMM_GameMode_ManagerMode::SpawnTerrainManager()
 		TerrainManagerInstance->SetActorLabel(TEXT("Terrain Manager"));
 		TerrainManagerInstance->SetActorHiddenInGame(true);
 		TerrainManagerInstance->SetOwner(this);
-		TerrainManagerInstance->InitializeTerrainParameters(MapDimensionsInChunks, ChunkDimensionsInCells, GridCellSize, Seed, NoiseScale, SurfaceHeightMultiplier);
-		TerrainManagerInstance->GenerateTerrain();
+		TerrainManagerInstance->InitializeTerrainParameters(MapSize, ChunkSize, CellSize);
+		TerrainManagerInstance->CreateChunkArray();
+
+		if (WorldDataInstance)
+		{
+			WorldDataInstance->OnChunkDataGenerated.AddDynamic(TerrainManagerInstance, &AMM_TerrainManager::OnChunkDataGenerated);
+		}
 	}
 }
 
@@ -87,7 +76,7 @@ void AMM_GameMode_ManagerMode::SpawnGridManager()
 		GridManagerInstance->SetActorLabel(TEXT("Grid Manager"));
 		GridManagerInstance->SetActorHiddenInGame(true);
 		GridManagerInstance->SetOwner(this);
-		GridManagerInstance->InitializeGridParameters(MapDimensionsInChunks * ChunkDimensionsInCells, GridCellSize);
+		GridManagerInstance->InitializeGridParameters(MapSize * ChunkSize, CellSize);
 	}
 }
 

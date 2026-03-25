@@ -14,15 +14,15 @@ class MINEMANAGER_API AMM_TerrainManager : public AActor
 	
 public:	
 	AMM_TerrainManager();
-	void InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize, const int32 InSeed, const float InNoiseScale, const float InHeightMultiplier);
-	void GenerateTerrain();
-	
+	void InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize);
+	void CreateChunkArray();
 	void GetTerrainCenter(FVector& OutWorldPosition) const;
+	UFUNCTION()
+	void OnChunkDataGenerated(const FMM_ChunkData& Chunk);
 
 protected:
 	virtual void BeginPlay() override;
-	void CreateChunk(const FVector ChunkCord, UMaterialInstanceDynamic* TerrainMID);
-	void CreateChunkArray();
+	void CreateChunk(const FVector& ChunkCord, UMaterialInstanceDynamic* TerrainMID);
 	// Any World Position converted to the nearest vertex position, and the corresponding chunk coordinate
 	void WorldToChunkLocation(FVector WorldPosition, TArray<FIntPoint>& OutChunkCoords, TArray<FIntPoint>& OutVertexCoords) const;
 
@@ -45,8 +45,6 @@ protected:
 	int32 MapDimensionsInChunks;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 Seed;
-	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
-	float NoiseScale;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	float HeightMultiplier;
 

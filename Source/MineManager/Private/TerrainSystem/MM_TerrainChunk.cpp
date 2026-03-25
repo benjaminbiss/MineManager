@@ -23,7 +23,7 @@ void AMM_TerrainChunk::BeginPlay()
 	
 }
 
-void AMM_TerrainChunk::GenerateChunkMesh(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier, const TArray<float>& InHeightDeltaMap, UMaterialInstanceDynamic* TerrainMidInst)
+void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInstanceDynamic* TerrainMidInst)
 {
 	// Set the material parameter for the chunk's material instance dynamic
     TerrainMID = TerrainMidInst;
@@ -122,56 +122,14 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Seed, const int32 Dimension
     }
 }
 
-//void AMM_TerrainChunk::GenerateHeightMap(const int32 Seed, const int32 Dimensions, const int32 TriSize, const float NoiseScale, const float HeightMultiplier)
-//{
-//	  ChunkDimensions = Dimensions;
-//
-//    FastNoiseLite Noise;
-//    Noise.SetSeed(Seed);
-//    Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-//    Noise.SetFrequency(NoiseScale);
-//
-//    Vertices.Empty();
-//    UVs.Empty();
-//
-//    for (int32 y = 0; y < ChunkDimensions; y++)
-//    {
-//        for (int32 x = 0; x < ChunkDimensions; x++)
-//        {
-//            const float GlobalX = (ChunkCord.X * (ChunkDimensions - 1) + x);
-//            const float GlobalY = (ChunkCord.Y * (ChunkDimensions - 1) + y);
-//
-//            const float NoiseValue = Noise.GetNoise(GlobalX, GlobalY);
-//            float Height = NoiseValue * HeightMultiplier;
-//            SeededHeightMap.Add(Height);
-//
-//            Vertices.Add(FVector(x * TriSize, y * TriSize, Height));
-//            UVs.Add(FVector2D(static_cast<float>(x) / (ChunkDimensions - 1), static_cast<float>(y) / (ChunkDimensions - 1)));
-//        }
-//    }
-//}
-//
-//void AMM_TerrainChunk::SetupHeightDeltaMap(const TArray<float>& InHeightDeltaMap)
-//{
-//    // Create a new height delta map if the input is empty or has a different size
-//    if (InHeightDeltaMap.IsEmpty() || InHeightDeltaMap.Num() != Vertices.Num())
-//    {		
-//        for (int32 i = 0; i < Vertices.Num(); i++)
-//        {
-//            HeightDeltaMap.Add(0.0f);
-//		}
-//        return;
-//	}
-//	HeightDeltaMap = InHeightDeltaMap;
-//}
-//
-//void AMM_TerrainChunk::UpdateMeshWithHeightDeltaMap()
-//{
-//    for (int32 i = 0; i < Vertices.Num(); i++)
-//    {
-//		UpdateVertexHeight(i, HeightDeltaMap[i]);
-//    }
-//}
+void AMM_TerrainChunk::UpdateChunkMesh(const FMM_ChunkData& Chunk)
+{
+    for (int32 i = 0; i < Vertices.Num(); i++)
+    {
+        Vertices[i].Z = Chunk.Cells[i].CellLayers[1].Height; // Assuming the first layer is the empty air layer
+    }
+	RecalculateMesh();
+}
 
 void AMM_TerrainChunk::UpdateVertexHeight(const int32 VertexIndex, float HeightDelta)
 {

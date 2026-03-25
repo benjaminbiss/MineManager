@@ -12,4 +12,5 @@ enum class EMM_CellGeologyType : uint8
     BlastedRock,
     WasteRock,
     Coal,
+    Bedrock,
 };

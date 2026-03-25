@@ -11,8 +11,20 @@ struct MINEMANAGER_API FMM_CellLayer
 	GENERATED_BODY()
 
     UPROPERTY()
-    EMM_CellGeologyType CellGeoType;
+    int32 Height;
 
     UPROPERTY()
-    int32 Depth;
+    EMM_CellGeologyType CellGeoType;
+
+    FMM_CellLayer()
+    {
+        Height = 3200;
+		CellGeoType = EMM_CellGeologyType::Empty;
+    }
+
+    FMM_CellLayer(const int32 InDepth, const EMM_CellGeologyType InCellGeoType)
+    {
+        Height = InDepth;
+		CellGeoType = InCellGeoType;
+    }
 };

@@ -15,40 +15,30 @@ void AMM_TerrainManager::GetTerrainCenter(FVector& OutWorldPosition) const
 	OutWorldPosition.Z = 0;
 }
 
+void AMM_TerrainManager::OnChunkDataGenerated(const FMM_ChunkData& Chunk)
+{
+	int32 ChunkIndex = Chunk.CoordY * MapDimensionsInChunks + Chunk.CoordX;
+	UE_LOG(LogTemp, Log, TEXT("Updating mesh height data for chunk (%d, %d)"), Chunk.CoordX, Chunk.CoordY);
+	if (TerrainChunks.Num() <= Chunk.CoordY * MapDimensionsInChunks + Chunk.CoordX)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TerrainManager::OnChunkDataGenerated | Chunk outside of bounds of chunk array."));
+		return;
+	}
+	TerrainChunks[ChunkIndex]->UpdateChunkMesh(Chunk);
+}
+
 void AMM_TerrainManager::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-void AMM_TerrainManager::InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize, const int32 InSeed, const float InNoiseScale, const float InHeightMultiplier)
+void AMM_TerrainManager::InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize)
 {
 	MapDimensionsInChunks = InMapDimensionsInChunks;
 	ChunkDimensionsInCells = InChunkDimensionsInCells;
 	CellSize = InCellSize;
-	Seed = InSeed;
-	NoiseScale = InNoiseScale;
-	HeightMultiplier = InHeightMultiplier;
-	ChunkDimensionsInUnits = ChunkDimensionsInCells * CellSize;
-}
-
-void AMM_TerrainManager::GenerateTerrain()
-{
-	CreateChunkArray();
-}
-
-void AMM_TerrainManager::CreateChunk(const FVector ChunkCord, UMaterialInstanceDynamic* TerrainMID)
-{
-	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * ChunkDimensionsInUnits, ChunkCord.Y * ChunkDimensionsInUnits, 0), FRotator::ZeroRotator);
-	if (NewChunk)
-	{
-		TerrainChunks.Add(NewChunk);	
-		NewChunk->SetOwner(this);
-		NewChunk->ChunkCord = ChunkCord;
-		const TArray<float> HeightDeltaMap; // This value will be loaded from save data, this is the persistence height deformation information
-		NewChunk->GenerateChunkMesh(Seed, ChunkDimensionsInCells + 1, CellSize, NoiseScale, HeightMultiplier, HeightDeltaMap, TerrainMID);
-	
-	}
+	ChunkDimensionsInUnits = (ChunkDimensionsInCells - 1) * CellSize;
 }
 
 void AMM_TerrainManager::CreateChunkArray()
@@ -69,6 +59,18 @@ void AMM_TerrainManager::CreateChunkArray()
 				CreateChunk(ChunkCord, TerrainMID);
 			}
 		}
+	}
+}
+
+void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord, UMaterialInstanceDynamic* TerrainMaterialInst)
+{
+	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * ChunkDimensionsInUnits, ChunkCord.Y * ChunkDimensionsInUnits, 0), FRotator::ZeroRotator);
+	if (NewChunk)
+	{
+		TerrainChunks.Add(NewChunk);
+		NewChunk->SetOwner(this);
+		NewChunk->ChunkCord = ChunkCord;
+		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells, CellSize, TerrainMaterialInst);
 	}
 }
 

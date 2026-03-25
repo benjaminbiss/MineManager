@@ -22,7 +22,6 @@ protected:
 	void SetupLevel();
 	void SpawnManagers();
 	void SpawnWorldData();
-	void SpawnWorldDataVisualizer();
 	void SpawnTerrainManager();
 	void SpawnGridManager();
 	void SpawnWorkerManager();
@@ -65,20 +64,26 @@ public:
 	AMM_TaskManager* TaskManagerInstance;
 
 	// World Parameters
-	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
-	int32 ChunkDimensionsInCells = 32;
-	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
-	int32 GridCellSize = 100;
-	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
-	int32 MapDimensionsInChunks = 3;
-	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
-	int32 WorldDepth = 96;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
 	int32 Seed = 11;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
+	int32 MapSize = 10;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
+	int32 ChunkSize = 32;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Grid")
+	int32 CellSize = 100;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
-	float NoiseScale = 0.02f;
+	int32 WorldDepth = 32;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
-	float SurfaceHeightMultiplier = 800.f;
+	int32 SurfaceHeightMultiplier = 2200;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
-	float SubsurfaceHeightOffset = 400.f;
+	int32 SubsurfaceHeightMultiplier = 3200;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	int32 SubsurfaceHeightOffset = 200;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	float CoalSeamThicknessThreshold = 0.6f;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	int32 CoalSeamHeightOffset = 500;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|WorldMap|Terrain")
+	int32 CoalSeamDepth = 800;
 };
