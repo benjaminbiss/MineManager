@@ -23,16 +23,23 @@ void AMM_TerrainChunk::BeginPlay()
 
 }
 
-void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInstanceDynamic* TerrainMidInst)
+void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInterface* TerrainMaterialInterface, const int32 CellSize, const float LineThickness, const float GridOpacity, const FLinearColor GridColor)
 {
 	// Set the material parameter for the chunk's material instance dynamic
-    TerrainMID = TerrainMidInst;
+    TerrainMID = UMaterialInstanceDynamic::Create(TerrainMaterialInterface, this);
+    TerrainMID->SetScalarParameterValue("CellSize", CellSize);
+    TerrainMID->SetScalarParameterValue("LineThickness", LineThickness);
+    TerrainMID->SetScalarParameterValue("GridOpacity", GridOpacity);
+    TerrainMID->SetVectorParameterValue("GridColor", GridColor);
     ChunkDimensions = Dimensions;
+    // Set up the weightmap texture
     WeightmapTexture = UTexture2D::CreateTransient(
         Dimensions, Dimensions, PF_B8G8R8A8
     );
-
-    // Set up the weightmap texture
+    // Configure sampling to prevent wrap/edge bleeding
+    WeightmapTexture->AddressX = TA_Clamp;
+    WeightmapTexture->AddressY = TA_Clamp;
+    WeightmapTexture->Filter = TF_Bilinear; // smooth sampling but still no wrap
     WeightmapTexture->MipGenSettings = TMGS_NoMipmaps;
     WeightmapTexture->CompressionSettings = TC_VectorDisplacementmap;
     WeightmapTexture->SRGB = false;
@@ -43,11 +50,11 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
     {
         for (int x = 0; x < Dimensions; x++)
         {
-            Pixels[y * Dimensions + x] = FColor(0, 0, 0, 0);
+            Pixels[y * Dimensions + x] = FColor(255, 0, 0, 0);
         }
     }
     // Define region, pitch and bytes-per-pixel
-    FUpdateTextureRegion2D Region(0, 0, 0, 0, Dimensions, Dimensions); // destX, destY, srcX, srcY, width, height
+    FUpdateTextureRegion2D Region(0, 0, 0, 0, ChunkDimensions, ChunkDimensions); // destX, destY, srcX, srcY, width, height
     const uint32 BytesPerPixel = sizeof(FColor);                       // PF_B8G8R8A8 -> 4
     const uint32 Pitch = Dimensions * BytesPerPixel;                   // bytes per row
 
@@ -56,18 +63,21 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
     uint8* SrcData = new uint8[TotalBytes];
     FMemory::Memcpy(SrcData, Pixels.GetData(), TotalBytes);
 
-    WeightmapTexture->UpdateTextureRegions(
-        0,                                      // mip index
-        1,                                      // num regions
-        &Region,                                // regions
-        Pitch,                                  // src pitch (bytes per row)
-        BytesPerPixel,                          // src bytes per pixel
-        SrcData,                                // source data
-        [](uint8* InSrcData, const FUpdateTextureRegion2D* InRegions) // cleanup
-        {
-            delete[] InSrcData;
-        }
-    );
+    if (WeightmapTexture->GetSizeX() == ChunkDimensions)
+    {
+        WeightmapTexture->UpdateTextureRegions(
+            0,                                      // mip index
+            1,                                      // num regions
+            &Region,                                // regions
+            Pitch,                                  // src pitch (bytes per row)
+            BytesPerPixel,                          // src bytes per pixel
+            SrcData,                                // source data
+            [](uint8* InSrcData, const FUpdateTextureRegion2D* InRegions) // cleanup
+            {
+                delete[] InSrcData;
+            }
+        );
+    }
 
     // 1. Set up Empty Data
     Vertices.Empty();
@@ -131,6 +141,8 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
     );
     if (TerrainMID)
     {
+        static const FName WeightmapParamName(TEXT("WeightmapTexture"));
+        TerrainMID->SetTextureParameterValue(WeightmapParamName, WeightmapTexture);
         TerrainMID->SetVectorParameterValue("ChunkOrigin", ChunkCord);
 		Mesh->SetMaterial(0, TerrainMID);
     }
@@ -164,16 +176,71 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
 
 void AMM_TerrainChunk::UpdateChunkMesh(const FMM_ChunkData& Chunk)
 {
-    if (Chunk.Cells.Num() != Vertices.Num())
+    double ArraySize = Vertices.Num();
+    if (Chunk.Cells.Num() != ArraySize)
     {
         UE_LOG(LogTemp, Warning, TEXT("UpdateChunkMesh | Mismatch between chunk cell count and vertex count."));
         return;
 	}
-    for (int32 i = 0; i < Vertices.Num(); i++)
+
+    TArray<FColor> Pixels;
+    Pixels.SetNum(ArraySize);
+    for (int32 i = 0; i < ArraySize; i++)
     {
-        Vertices[i].Z = Chunk.Cells[i].CellLayers[1].Height; // Assuming the first layer is the empty air layer
+        // Assuming the first layer is the empty air layer
+        Vertices[i].Z = Chunk.Cells[i].CellLayers[1].Height; // Adjust the height of the vertices according to chunk data
+        EMM_CellGeologyType vertType = Chunk.Cells[i].CellLayers[1].CellGeoType; // Update texture weight map based on geology type for visualization
+        switch (vertType)
+        {
+            case EMM_CellGeologyType::CoverSoil:
+                Pixels[i] = FColor(255, 0, 0, 0); 
+                break;
+			case EMM_CellGeologyType::Overburden:
+                Pixels[i] = FColor(0, 255, 0, 0);
+                break;
+            case EMM_CellGeologyType::Rock:
+                Pixels[i] = FColor(0, 0, 255, 0); 
+				break;
+			case EMM_CellGeologyType::Coal:
+                Pixels[i] = FColor(0, 0, 0, 255);
+            break;
+            default:
+                Pixels[i] = FColor(0, 0, 0, 0);   
+                break;
+        }
     }
-	RecalculateMesh();
+    // Define region, pitch and bytes-per-pixel
+    if (WeightmapTexture->GetSizeX() == ChunkDimensions)
+    {
+	    FUpdateTextureRegion2D Region(0, 0, 0, 0, ChunkDimensions, ChunkDimensions); // destX, destY, srcX, srcY, width, height
+	    const uint32 BytesPerPixel = sizeof(FColor);                       // PF_B8G8R8A8 -> 4
+	    const uint32 Pitch = ChunkDimensions * BytesPerPixel;                   // bytes per row
+
+	    // Make a heap copy for the async update and provide a cleanup lambda
+	    const int64 TotalBytes = static_cast<int64>(Pixels.Num()) * BytesPerPixel;
+	    uint8* SrcData = new uint8[TotalBytes];
+	    FMemory::Memcpy(SrcData, Pixels.GetData(), TotalBytes);
+
+	    WeightmapTexture->UpdateTextureRegions(
+	        0,                                      // mip index
+	        1,                                      // num regions
+	        &Region,                                // regions
+	        Pitch,                                  // src pitch (bytes per row)
+	        BytesPerPixel,                          // src bytes per pixel
+	        SrcData,                                // source data
+	        [](uint8* InSrcData, const FUpdateTextureRegion2D* InRegions) // cleanup
+	        {
+	            delete[] InSrcData;
+	        }
+	    );
+	    static const FName WeightmapParamName(TEXT("WeightmapTexture"));
+	    TerrainMID->SetTextureParameterValue(WeightmapParamName, WeightmapTexture); // Updates Material Texture
+    }
+    else
+    {
+		UE_LOG(LogTemp, Warning, TEXT("UpdateChunkMesh | Weightmap texture size mismatch with chunk dimensions."));
+    }
+	RecalculateMesh(); // Updates Mesh Vertices and Normals
 }
 
 void AMM_TerrainChunk::UpdateVertexHeight(const int32 VertexIndex, float HeightDelta)

@@ -45,24 +45,18 @@ void AMM_TerrainManager::CreateChunkArray()
 {
 	if (TerrainMaterial)
 	{
-		UMaterialInstanceDynamic* TerrainMID = UMaterialInstanceDynamic::Create(TerrainMaterial, this);
-		TerrainMID->SetScalarParameterValue("CellSize", CellSize);
-		TerrainMID->SetScalarParameterValue("LineThickness", 0.035f);
-		TerrainMID->SetScalarParameterValue("GridOpacity", 8.f);
-		TerrainMID->SetVectorParameterValue("GridColor", FLinearColor::Black);
-
 		for (int32 y = 0; y < MapDimensionsInChunks; y++)
 		{
 			for (int32 x = 0; x < MapDimensionsInChunks; x++)
 			{
 				const FVector ChunkCord(x, y, 0);
-				CreateChunk(ChunkCord, TerrainMID);
+				CreateChunk(ChunkCord);
 			}
 		}
 	}
 }
 
-void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord, UMaterialInstanceDynamic* TerrainMaterialInst)
+void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord)
 {
 	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * (ChunkDimensionsInUnits + CellSize), ChunkCord.Y * (ChunkDimensionsInUnits + CellSize), 0), FRotator::ZeroRotator);
 	if (NewChunk)
@@ -71,7 +65,7 @@ void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord, UMaterialInstance
 		NewChunk->SetOwner(this);
 		NewChunk->ChunkCord = ChunkCord;
 		// ChunkDimensionsInCells + 1 because the terrain manager needs to generate height values for the neighboring chunks in order to ensure seamless height values across chunk borders
-		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells + 1, CellSize, TerrainMaterialInst);
+		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells + 1, CellSize, TerrainMaterial, CellSize, LineThickness, GridOpacity, GridColor);
 	}
 }
 

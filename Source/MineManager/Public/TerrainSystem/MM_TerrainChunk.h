@@ -15,7 +15,7 @@ class MINEMANAGER_API AMM_TerrainChunk : public AActor
 	
 public:	
 	AMM_TerrainChunk();
-	void GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInstanceDynamic* TerrainMidInst);
+	void GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInterface* TerrainMaterialInterface, const int32 CellSize, const float LineThickness, const float GridOpacity, const FLinearColor GridColor);
 	void UpdateChunkMesh(const FMM_ChunkData& Chunk);
 
 	UPROPERTY()

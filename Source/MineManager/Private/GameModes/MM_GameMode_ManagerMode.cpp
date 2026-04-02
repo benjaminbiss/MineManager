@@ -3,7 +3,6 @@
 #include "Controllers/MM_PlayerController.h"
 
 #include "TerrainSystem/MM_WorldData.h"
-#include "TerrainSystem/MM_WorldDataVisualizer.h"
 #include "TerrainSystem/MM_TerrainManager.h"
 #include "TerrainSystem/MM_GridManager.h"
 
@@ -14,6 +13,10 @@
 void AMM_GameMode_ManagerMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AMM_PlayerController* PC = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
+	FVector PlayerStartLocation = FVector(ChunkSize * MapSize * CellSize * 0.5f, ChunkSize * MapSize * CellSize * 0.5f, 0);
+	PC->GetPawn()->SetActorLocation(PlayerStartLocation);
 
 	SetupLevel();
 }
@@ -42,6 +45,8 @@ void AMM_GameMode_ManagerMode::SpawnWorldData()
 		WorldDataInstance->SetActorLabel(TEXT("World Data"));
 		WorldDataInstance->SetActorHiddenInGame(true);
 		WorldDataInstance->SetOwner(this);
+		// Use Random Seed for Testing
+		Seed = FMath::Rand();
 		WorldDataInstance->InitializeWorldDataParameters(ChunkSize, CellSize, MapSize, WorldDepth, Seed, SurfaceHeightMultiplier, SubsurfaceHeightMultiplier, SubsurfaceHeightOffset, CoalSeamThicknessThreshold, CoalSeamHeightOffset, CoalSeamDepth);
 	}
 }

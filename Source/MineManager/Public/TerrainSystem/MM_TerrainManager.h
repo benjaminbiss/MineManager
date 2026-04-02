@@ -22,7 +22,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void CreateChunk(const FVector& ChunkCord, UMaterialInstanceDynamic* TerrainMID);
+	void CreateChunk(const FVector& ChunkCord);
 	// Any World Position converted to the nearest vertex position, and the corresponding chunk coordinate
 	void WorldToChunkLocation(FVector WorldPosition, TArray<FIntPoint>& OutChunkCoords, TArray<FIntPoint>& OutVertexCoords) const;
 
@@ -47,6 +47,13 @@ protected:
 	int32 Seed;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	float HeightMultiplier;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Grid")
+	float LineThickness = 0.035f;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Grid")
+	float GridOpacity = 8.f;
+	UPROPERTY(EditAnywhere, Category = "MyParameters|Grid")
+	FLinearColor GridColor = FLinearColor::Black;
+
 
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Navigation Invoker")
 	ANavMeshBoundsVolume* NavMeshBoundsVolume;
