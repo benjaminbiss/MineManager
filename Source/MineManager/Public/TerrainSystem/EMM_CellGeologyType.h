@@ -9,8 +9,5 @@ enum class EMM_CellGeologyType : uint8
     CoverSoil,
     Overburden,
     Rock,
-    BlastedRock,
-    WasteRock,
     Coal,
-    Bedrock,
 };

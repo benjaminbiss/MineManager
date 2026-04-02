@@ -60,23 +60,44 @@ void AMM_WorldData::RequestChunkGeneration(int32 X, int32 Y)
 	SurfacePCGChunkGenerator->GenerateChunkData(Chunk);
 }
 
-void AMM_WorldData::WriteSurfaceDataToChunkData(const TArray<double>& HeighValues)
+void AMM_WorldData::WriteSurfaceDataToChunkData(const TArray<double>& SurfaceValues, const TArray<double>& SubsurfaceValues)
 {
 	FMM_ChunkData& CurrentChunkData = ChunkDataArray.Last(); // Get the most recently added chunk data, which is the one currently being generated
-	UE_LOG(LogTemp, Log, TEXT("Received surface height data for chunk (%d, %d)"), CurrentChunkData.CoordX, CurrentChunkData.CoordY);
+	// UE_LOG(LogTemp, Log, TEXT("Received surface height data for chunk (%d, %d)"), CurrentChunkData.CoordX, CurrentChunkData.CoordY);
 
-	for (int32 i = 0; i < HeighValues.Num(); i++)
+	int32 NumPoints = SurfaceValues.Num() == SubsurfaceValues.Num() ? SurfaceValues.Num() : 0;
+	for (int32 i = 0; i < NumPoints; i++)
 	{
-		double HeightValue = HeighValues[i];
-		int32 x = HeighValues.Num() % ChunkSize;
-		int32 y = HeighValues.Num() / ChunkSize;
+		double SurfaceValue = SurfaceValues[i];
+		double SubsurfaceValue = SubsurfaceValues[i];
+		int32 x = SurfaceValues.Num() % ChunkSize;
+		int32 y = SurfaceValues.Num() / ChunkSize;
 		FMM_CellData CellData = FMM_CellData(x, y);
 		// Add layer of type Empty and MaxLayerHeight = 3200, to simplify rendering and mining logic by ensuring every cell has at least one layer representing the surface height
-		FMM_CellLayer EmptyLayer = FMM_CellLayer();
-		CellData.CellLayers.Add(EmptyLayer);
-		// Add layer of type Empty and MaxLayerHeight = HeightValue, representing the surface height at this cell
-		FMM_CellLayer CellLayer = FMM_CellLayer(HeightValue, EMM_CellGeologyType::CoverSoil);
-		CellData.CellLayers.Add(CellLayer);
+		FMM_CellLayer Layer = FMM_CellLayer();
+		CellData.CellLayers.Add(Layer);
+		// Compare surface and subsurface values to determine the geology type of the layer
+		if (SurfaceValue > SubsurfaceValue) // Soil -> Overburden - > Rock
+		{
+			Layer = FMM_CellLayer(SurfaceValue, EMM_CellGeologyType::CoverSoil);
+			CellData.CellLayers.Add(Layer);
+			Layer = FMM_CellLayer(SurfaceValue - 100, EMM_CellGeologyType::Overburden);
+			CellData.CellLayers.Add(Layer);
+			Layer = FMM_CellLayer(SubsurfaceValue, EMM_CellGeologyType::Rock);
+			CellData.CellLayers.Add(Layer);
+		}
+		if (SurfaceValue == SubsurfaceValue) // Overburden - > Rock
+		{
+			Layer = FMM_CellLayer(SurfaceValue, EMM_CellGeologyType::Overburden);
+			CellData.CellLayers.Add(Layer);
+			Layer = FMM_CellLayer(SurfaceValue - 100, EMM_CellGeologyType::Rock);
+			CellData.CellLayers.Add(Layer);
+		}
+		if (SurfaceValue < SubsurfaceValue) // Rock
+		{
+			Layer = FMM_CellLayer(SubsurfaceValue, EMM_CellGeologyType::Rock);
+			CellData.CellLayers.Add(Layer);
+		}
 		CurrentChunkData.Cells.Add(CellData);
 	}
 	OnChunkDataGenerated.Broadcast(CurrentChunkData);

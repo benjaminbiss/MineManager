@@ -21,6 +21,8 @@ public:
 	UPROPERTY()
 	UProceduralMeshComponent* Mesh;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Material")
+	UTexture2D* WeightmapTexture;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Material")
 	UMaterialInstanceDynamic* TerrainMID;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|ChunkInfo")
 	FVector ChunkCord;

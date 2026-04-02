@@ -72,28 +72,33 @@ void AMM_SurfacePCGChunkGenerator::OnPCGGraphGenerated(UPCGComponent* InComponen
 				if (NumPoints == 0) continue;
 
 				// 1. Create the Accessor for the specific attribute name and type
-				const FPCGAttributePropertySelector Selector(FName("SurfaceHeight"));
-				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(PCGData, Selector);
+				const FPCGAttributePropertySelector SurfaceSelector(FName("SurfaceHeight"));
+				const TUniquePtr<const IPCGAttributeAccessor> SurfaceAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(PCGData, SurfaceSelector);
+				const FPCGAttributePropertySelector SubsurfaceSelector(FName("SubsurfaceHeight"));
+				const TUniquePtr<const IPCGAttributeAccessor> SubsurfaceAccessor = PCGAttributeAccessorHelpers::CreateConstAccessor(PCGData, SubsurfaceSelector);
 
-				if (Accessor.IsValid())
+				if (SurfaceAccessor.IsValid() && SubsurfaceAccessor.IsValid())
 				{
 					// 2. Create the "Keys" - this tells the accessor which points we want to read
 					FPCGAttributeAccessorKeysPoints Keys(Points);
 					// 3. Prepare a local array to hold all the results
-					TArray<double> HeightValues;
-					HeightValues.SetNumUninitialized(NumPoints);
-					// 4. Batch Read
-					if (Accessor->GetRange<double>(HeightValues, 0, Keys))
+					TArray<double> SurfaceValues;
+					TArray<double> SubsurfaceValues;
+					SurfaceValues.SetNumUninitialized(NumPoints);
+					SubsurfaceValues.SetNumUninitialized(NumPoints);
+					// 4. Broadcast 
+					if (SurfaceAccessor->GetRange<double>(SurfaceValues, 0, Keys) && SubsurfaceAccessor->GetRange<double>(SubsurfaceValues, 0, Keys))
 					{
-						OnSurfaceChunkGenerated.Broadcast(HeightValues);
-						// 5.Iterate local array and the Points array in parallel
-						for (int32 i = 0; i < NumPoints; ++i)
-						{
-							const FPCGPoint& CurrentPoint = Points[i];
-							double CurrentHeight = HeightValues[i];
-							//UE_LOG(LogTemp, Log, TEXT("Point %d: SurfaceHeight = %f"), i, CurrentHeight);
-						}
+						OnSurfaceChunkGenerated.Broadcast(SurfaceValues, SubsurfaceValues);
 					}
+
+					//// 5. Batch Read - Iterate local array and the Points array in parallel
+					//for (int32 i = 0; i < NumPoints; ++i)
+					//{
+					//	const FPCGPoint& CurrentPoint = Points[i];
+					//	double CurrentHeight = SurfaceValues[i];
+					//	//UE_LOG(LogTemp, Log, TEXT("Point %d: SurfaceHeight = %f"), i, CurrentHeight);
+					//}
 				}
 			}
 		}

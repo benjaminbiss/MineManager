@@ -20,7 +20,7 @@ AMM_TerrainChunk::AMM_TerrainChunk()
 void AMM_TerrainChunk::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInstanceDynamic* TerrainMidInst)
@@ -28,8 +28,48 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
 	// Set the material parameter for the chunk's material instance dynamic
     TerrainMID = TerrainMidInst;
     ChunkDimensions = Dimensions;
+    WeightmapTexture = UTexture2D::CreateTransient(
+        Dimensions, Dimensions, PF_B8G8R8A8
+    );
 
-    // 1. Setup Empty Data
+    // Set up the weightmap texture
+    WeightmapTexture->MipGenSettings = TMGS_NoMipmaps;
+    WeightmapTexture->CompressionSettings = TC_VectorDisplacementmap;
+    WeightmapTexture->SRGB = false;
+    WeightmapTexture->UpdateResource();
+    TArray<FColor> Pixels;
+    Pixels.SetNum(Dimensions * Dimensions);
+    for (int y = 0; y < Dimensions; y++)
+    {
+        for (int x = 0; x < Dimensions; x++)
+        {
+            Pixels[y * Dimensions + x] = FColor(0, 0, 0, 0);
+        }
+    }
+    // Define region, pitch and bytes-per-pixel
+    FUpdateTextureRegion2D Region(0, 0, 0, 0, Dimensions, Dimensions); // destX, destY, srcX, srcY, width, height
+    const uint32 BytesPerPixel = sizeof(FColor);                       // PF_B8G8R8A8 -> 4
+    const uint32 Pitch = Dimensions * BytesPerPixel;                   // bytes per row
+
+    // Make a heap copy for the async update and provide a cleanup lambda
+    const int64 TotalBytes = static_cast<int64>(Pixels.Num()) * BytesPerPixel;
+    uint8* SrcData = new uint8[TotalBytes];
+    FMemory::Memcpy(SrcData, Pixels.GetData(), TotalBytes);
+
+    WeightmapTexture->UpdateTextureRegions(
+        0,                                      // mip index
+        1,                                      // num regions
+        &Region,                                // regions
+        Pitch,                                  // src pitch (bytes per row)
+        BytesPerPixel,                          // src bytes per pixel
+        SrcData,                                // source data
+        [](uint8* InSrcData, const FUpdateTextureRegion2D* InRegions) // cleanup
+        {
+            delete[] InSrcData;
+        }
+    );
+
+    // 1. Set up Empty Data
     Vertices.Empty();
     Triangles.Empty();
     UVs.Empty();
@@ -124,6 +164,11 @@ void AMM_TerrainChunk::GenerateChunkMesh(const int32 Dimensions, const int32 Tri
 
 void AMM_TerrainChunk::UpdateChunkMesh(const FMM_ChunkData& Chunk)
 {
+    if (Chunk.Cells.Num() != Vertices.Num())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UpdateChunkMesh | Mismatch between chunk cell count and vertex count."));
+        return;
+	}
     for (int32 i = 0; i < Vertices.Num(); i++)
     {
         Vertices[i].Z = Chunk.Cells[i].CellLayers[1].Height; // Assuming the first layer is the empty air layer

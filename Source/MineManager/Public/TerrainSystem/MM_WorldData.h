@@ -34,22 +34,22 @@ protected:
 	void RequestChunkGeneration(int32 X, int32 Y);
 	// Binds to the PCG graph's custom delegate emitted when generation complete event, and inserts the generated surface data into the corresponding chunk data
 	UFUNCTION()
-	void WriteSurfaceDataToChunkData(const TArray<double>& HeighValues);
+	void WriteSurfaceDataToChunkData(const TArray<double>& SurfaceValues, const TArray<double>& SubsurfaceValues);
 
 	// 1D array to store cell data, indexed by (x + y * GridSize)
 	// Each FMM_CellData contains an array of FMM_CellLayer, representing the vertical depth of each layer and the material type of each layer
 	UPROPERTY()
 	TArray<FMM_ChunkData> ChunkDataArray;
-	UPROPERTY()
-	TArray<float> SurfaceHeightMap;
-	UPROPERTY()
-	TArray<float> SubsurfaceHeightMap;
 
 	// PCG Graphs
 	UPROPERTY(EditDefaultsOnly, Category = "MyParameters|PCG Graphs")
 	TSubclassOf<AMM_SurfacePCGChunkGenerator> SurfacePCGChunkGeneratorClass;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|PCG Graphs")
 	AMM_SurfacePCGChunkGenerator* SurfacePCGChunkGenerator;
+	UPROPERTY(EditDefaultsOnly, Category = "MyParameters|PCG Graphs")
+	TSubclassOf<AMM_SurfacePCGChunkGenerator> UndergroundPCGChunkGeneratorClass;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|PCG Graphs")
+	AMM_SurfacePCGChunkGenerator* UndergroundPCGChunkGenerator;
 
 	// World Parameters
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|WorldData")

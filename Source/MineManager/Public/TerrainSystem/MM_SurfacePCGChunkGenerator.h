@@ -12,7 +12,7 @@ class UPCGGraphInstance;
 class UPCGGraph;
 class UPCGComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSurfaceChunkGenerated, const TArray<double>&, HeightValues);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSurfaceChunkGenerated, const TArray<double>&, SurfaceValues, const TArray<double>&, SubsurfaceValues);
 
 UCLASS()
 class MINEMANAGER_API AMM_SurfacePCGChunkGenerator : public AActor
