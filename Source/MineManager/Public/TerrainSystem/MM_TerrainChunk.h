@@ -15,7 +15,7 @@ class MINEMANAGER_API AMM_TerrainChunk : public AActor
 	
 public:	
 	AMM_TerrainChunk();
-	void GenerateChunkMesh(const int32 Dimensions, const int32 TriSize, UMaterialInterface* TerrainMaterialInterface, const int32 CellSize, const float LineThickness, const float GridOpacity, const FLinearColor GridColor);
+	void GenerateChunkMesh(const int32 Dimensions, UMaterialInterface* TerrainMaterialInterface, const int32 CellDimension, const float LineThickness, const float GridOpacity, const FLinearColor GridColor);
 	void UpdateChunkMesh(const FMM_ChunkData& Chunk);
 
 	UPROPERTY()
@@ -28,13 +28,16 @@ public:
 	FVector ChunkCord;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|ChunkInfo")
 	int32 ChunkDimensions;
+	UPROPERTY(VisibleAnywhere, Category = "MyParameters|ChunkInfo")
+	int32 CellSize;
 
 protected:
 	virtual void BeginPlay() override;
+	void SetupTerrainMaterial(UMaterialInterface* TerrainMaterialInterface, const int32 CellDimension, const float LineThickness, const float GridOpacity, const FLinearColor GridColor);
+	void WriteWeightMapInfo(TArray<FColor> Pixels);
 
-	void UpdateVertexHeight(const int32 VertexIndex, float HeightDelta);
-	void CalculateMesh(); // Complete mesh generation including collision
-	void RecalculateMesh(); // Purley visual mesh update without collision mesh regeneration, for better performance when applying small deformations
+	void SmoothBorderNormals(const FMM_ChunkData& Chunk);
+	void RecalculateMesh(const FMM_ChunkData& Chunk, const bool RecalculateNavMesh);
 	void UpdateMeshNavigation() const;
 
 	UPROPERTY()

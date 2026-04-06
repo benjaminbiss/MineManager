@@ -38,7 +38,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
 	int32 CellSize;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")
-	int32 ChunkDimensionsInCells;
+	int32 ChunkDimensionsInVerts;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Terrain")
 	int32 ChunkDimensionsInUnits;
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Terrain")

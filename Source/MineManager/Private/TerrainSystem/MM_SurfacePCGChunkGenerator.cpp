@@ -25,6 +25,7 @@ void AMM_SurfacePCGChunkGenerator::SetupSurfaceDataPcg(const int32 InChunkSize, 
 	UPCGGraphInstance* Instance = SurfacePCGComponent->GetGraphInstance();
 	Instance->SetGraphParameter(FName("Seed"), InSeed);
 	Instance->SetGraphParameter(FName("ChunkSize"), InChunkSize);
+	Instance->SetGraphParameter(FName("ChunkSizeOffset"), 2);
 	Instance->SetGraphParameter(FName("CellSize"), InCellSize);
 	Instance->SetGraphParameter(FName("SurfaceHeightMultiplier"), InSurfaceHeightMultiplier);
 	Instance->SetGraphParameter(FName("SubsurfaceHeightMultiplier"), InSubsurfaceHeightMultiplier);
@@ -33,7 +34,7 @@ void AMM_SurfacePCGChunkGenerator::SetupSurfaceDataPcg(const int32 InChunkSize, 
 
 void AMM_SurfacePCGChunkGenerator::GenerateChunkData(const FMM_ChunkData& OutChunkData) const
 {
-	UE_LOG(LogTemp, Log, TEXT("Generating surface data for chunk (%d, %d)"), OutChunkData.CoordX, OutChunkData.CoordY);
+	// UE_LOG(LogTemp, Log, TEXT("Generating surface data for chunk (%d, %d)"), OutChunkData.CoordX, OutChunkData.CoordY);
 
 	UPCGGraphInstance* Instance = SurfacePCGComponent->GetGraphInstance();
 	Instance->SetGraphParameter(FName("ChunkX"), OutChunkData.CoordX);

@@ -18,7 +18,7 @@ void AMM_TerrainManager::GetTerrainCenter(FVector& OutWorldPosition) const
 void AMM_TerrainManager::OnChunkDataGenerated(const FMM_ChunkData& Chunk)
 {
 	int32 ChunkIndex = Chunk.CoordY * MapDimensionsInChunks + Chunk.CoordX;
-	UE_LOG(LogTemp, Log, TEXT("Updating mesh height data for chunk (%d, %d)"), Chunk.CoordX, Chunk.CoordY);
+	//UE_LOG(LogTemp, Log, TEXT("Updating mesh height data for chunk (%d, %d)"), Chunk.CoordX, Chunk.CoordY);
 	if (TerrainChunks.Num() <= Chunk.CoordY * MapDimensionsInChunks + Chunk.CoordX)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TerrainManager::OnChunkDataGenerated | Chunk outside of bounds of chunk array."));
@@ -36,9 +36,9 @@ void AMM_TerrainManager::BeginPlay()
 void AMM_TerrainManager::InitializeTerrainParameters(const int32 InMapDimensionsInChunks, const int32 InChunkDimensionsInCells, const int32 InCellSize)
 {
 	MapDimensionsInChunks = InMapDimensionsInChunks;
-	ChunkDimensionsInCells = InChunkDimensionsInCells;
+	ChunkDimensionsInVerts = InChunkDimensionsInCells;
 	CellSize = InCellSize;
-	ChunkDimensionsInUnits = (ChunkDimensionsInCells - 1) * CellSize;
+	ChunkDimensionsInUnits = (ChunkDimensionsInVerts - 1) * CellSize;
 }
 
 void AMM_TerrainManager::CreateChunkArray()
@@ -58,14 +58,13 @@ void AMM_TerrainManager::CreateChunkArray()
 
 void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord)
 {
-	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * (ChunkDimensionsInUnits + CellSize), ChunkCord.Y * (ChunkDimensionsInUnits + CellSize), 0), FRotator::ZeroRotator);
+	AMM_TerrainChunk* NewChunk = GetWorld()->SpawnActor<AMM_TerrainChunk>(TerrainChunkClass, FVector(ChunkCord.X * ChunkDimensionsInUnits, ChunkCord.Y * ChunkDimensionsInUnits, 0), FRotator::ZeroRotator);
 	if (NewChunk)
 	{
 		TerrainChunks.Add(NewChunk);
 		NewChunk->SetOwner(this);
 		NewChunk->ChunkCord = ChunkCord;
-		// ChunkDimensionsInCells + 1 because the terrain manager needs to generate height values for the neighboring chunks in order to ensure seamless height values across chunk borders
-		NewChunk->GenerateChunkMesh(ChunkDimensionsInCells + 1, CellSize, TerrainMaterial, CellSize, LineThickness, GridOpacity, GridColor);
+		NewChunk->GenerateChunkMesh(ChunkDimensionsInVerts, TerrainMaterial, CellSize, LineThickness, GridOpacity, GridColor);
 	}
 }
 
@@ -84,33 +83,33 @@ void AMM_TerrainManager::WorldToChunkLocation(FVector WorldPosition, TArray<FInt
 	OutChunkCoords.Add(ChunkCord);
 	OutVertexCoords.Add(VertexCord);
 
-	if (VertexCord.X == 0 || VertexCord.Y == 0 || VertexCord.X == ChunkDimensionsInCells || VertexCord.Y == ChunkDimensionsInCells)
+	if (VertexCord.X == 0 || VertexCord.Y == 0 || VertexCord.X == ChunkDimensionsInVerts || VertexCord.Y == ChunkDimensionsInVerts)
 	{
 		if (VertexCord.X == 0)
 		{
 			FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(-1, 0);
-			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInCells, 0);
+			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInVerts, 0);
 			OutChunkCoords.Add(AdjacentChunkCord);
 			OutVertexCoords.Add(AdjacentVertexCord);
 		}
 		if (VertexCord.Y == 0)
 		{
 			FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(0, -1);
-			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(0, ChunkDimensionsInCells);
+			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(0, ChunkDimensionsInVerts);
 			OutChunkCoords.Add(AdjacentChunkCord);
 			OutVertexCoords.Add(AdjacentVertexCord);
 		}
-		if (VertexCord.X == ChunkDimensionsInCells)
+		if (VertexCord.X == ChunkDimensionsInVerts)
 		{
 			FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(1, 0);
-			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInCells, 0);
+			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInVerts, 0);
 			OutChunkCoords.Add(AdjacentChunkCord);
 			OutVertexCoords.Add(AdjacentVertexCord);
 		}
-		if (VertexCord.Y == ChunkDimensionsInCells)
+		if (VertexCord.Y == ChunkDimensionsInVerts)
 		{
 			FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(0, 1);
-			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(0, -ChunkDimensionsInCells);
+			FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(0, -ChunkDimensionsInVerts);
 			OutChunkCoords.Add(AdjacentChunkCord);
 			OutVertexCoords.Add(AdjacentVertexCord);
 		}
@@ -119,28 +118,28 @@ void AMM_TerrainManager::WorldToChunkLocation(FVector WorldPosition, TArray<FInt
 			if (VertexCord.X == 0 && VertexCord.Y == 0)
 			{
 				FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(-1, -1);
-				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInCells, ChunkDimensionsInCells);
+				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInVerts, ChunkDimensionsInVerts);
 				OutChunkCoords.Add(AdjacentChunkCord);
 				OutVertexCoords.Add(AdjacentVertexCord);
 			}
-			else if (VertexCord.X == 0 && VertexCord.Y == ChunkDimensionsInCells)
+			else if (VertexCord.X == 0 && VertexCord.Y == ChunkDimensionsInVerts)
 			{
 				FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(-1, 1);
-				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInCells, -ChunkDimensionsInCells);
+				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(ChunkDimensionsInVerts, -ChunkDimensionsInVerts);
 				OutChunkCoords.Add(AdjacentChunkCord);
 				OutVertexCoords.Add(AdjacentVertexCord);
 			}
-			else if (VertexCord.X == ChunkDimensionsInCells && VertexCord.Y == 0)
+			else if (VertexCord.X == ChunkDimensionsInVerts && VertexCord.Y == 0)
 			{
 				FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(1, -1);
-				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInCells, ChunkDimensionsInCells);
+				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInVerts, ChunkDimensionsInVerts);
 				OutChunkCoords.Add(AdjacentChunkCord);
 				OutVertexCoords.Add(AdjacentVertexCord);
 			}
-			else if (VertexCord.X == ChunkDimensionsInCells && VertexCord.Y == ChunkDimensionsInCells)
+			else if (VertexCord.X == ChunkDimensionsInVerts && VertexCord.Y == ChunkDimensionsInVerts)
 			{
 				FIntPoint AdjacentChunkCord = ChunkCord + FIntPoint(1, 1);
-				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInCells, -ChunkDimensionsInCells);
+				FIntPoint AdjacentVertexCord = VertexCord + FIntPoint(-ChunkDimensionsInVerts, -ChunkDimensionsInVerts);
 				OutChunkCoords.Add(AdjacentChunkCord);
 				OutVertexCoords.Add(AdjacentVertexCord);
 			}
