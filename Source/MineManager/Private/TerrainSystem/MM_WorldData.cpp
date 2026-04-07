@@ -8,8 +8,13 @@
 
 AMM_WorldData::AMM_WorldData()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
+}
+
+void AMM_WorldData::Tick(float DeltaTime)
+{
+	ElapsedGenerationTime += DeltaTime;
 }
 
 void AMM_WorldData::InitializeWorldDataParameters(const int32 InChunkSize, const int32 InCellSize, const int32 InMapSize,
@@ -28,42 +33,64 @@ void AMM_WorldData::InitializeWorldDataParameters(const int32 InChunkSize, const
 	CoalSeamHeightOffset = InCoalSeamHeightOffset;
 	CoalSeamDepth = InCoalSeamDepth;
 
+	CreateSurfaceGenerator();
+
+	RegenerateWorldData();
+}
+
+void AMM_WorldData::CreateSurfaceGenerator()
+{
 	SurfacePCGChunkGenerator = GetWorld()->SpawnActor<AMM_SurfacePCGChunkGenerator>(SurfacePCGChunkGeneratorClass);
 	SurfacePCGChunkGenerator->SetActorHiddenInGame(true);
 	SurfacePCGChunkGenerator->SetActorLabel(TEXT("Surface PCG Chunk Generator"));
 	SurfacePCGChunkGenerator->SetOwner(this);
 	SurfacePCGChunkGenerator->SetupSurfaceDataPcg(ChunkSize, CellSize, MapSize, WorldDepth, Seed, SurfaceHeightMultiplier, SubsurfaceHeightMultiplier, SubsurfaceHeightOffset);
 	SurfacePCGChunkGenerator->OnSurfaceChunkGenerated.AddDynamic(this, &AMM_WorldData::WriteSurfaceDataToChunkData);
+}
 
+// Triggers a full world regeneration
+void AMM_WorldData::RegenerateWorldData()
+{
+	GeneratedChunkCount = 0;
 	GenerateWorldData();
+	SurfacePCGChunkGenerator->UpdateSeed(FMath::Rand());
 }
 
 void AMM_WorldData::GenerateWorldData()
-{
-	int32 ChunkCount = ChunkDataArray.Num();
-	if (ChunkCount < MapSize*MapSize)
+{	
+	if (GeneratedChunkCount < MapSize*MapSize)
 	{
-		int32 x = ChunkCount % MapSize;
-		int32 y = ChunkCount / MapSize;
+		int32 x = GeneratedChunkCount % MapSize;
+		int32 y = GeneratedChunkCount / MapSize;
 		RequestChunkGeneration(x, y);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Log, TEXT("All chunk data generated."));
+		UE_LOG(LogTemp, Log, TEXT("Generation Time: %f."), ElapsedGenerationTime);
+		//FTimerHandle RegenerationTimerHandle;
+		//GetWorld()->GetTimerManager().SetTimer(RegenerationTimerHandle, this, &AMM_WorldData::RegenerateWorldData, 3.0f, false);
 	}
 }
 
 void AMM_WorldData::RequestChunkGeneration(int32 X, int32 Y)
 {
 	FMM_ChunkData Chunk = FMM_ChunkData(X, Y);
-	ChunkDataArray.Add(Chunk);
+	int32 ChunkIndex = X + Y * MapSize;	
+	if (ChunkDataArray.Num() <= ChunkIndex)
+	{
+		// Ensure the array is large enough to hold the chunk at the given index
+		ChunkDataArray.SetNum(ChunkIndex + 1);
+	}	
+	ChunkDataArray[ChunkIndex] = Chunk;
 	SurfacePCGChunkGenerator->GenerateChunkData(Chunk);
 }
 
 void AMM_WorldData::WriteSurfaceDataToChunkData(const TArray<double>& SurfaceValues, const TArray<double>& SubsurfaceValues)
 {
-	FMM_ChunkData& CurrentChunkData = ChunkDataArray.Last(); // Get the most recently added chunk data, which is the one currently being generated
-	// UE_LOG(LogTemp, Log, TEXT("Received surface height data for chunk (%d, %d)"), CurrentChunkData.CoordX, CurrentChunkData.CoordY);
+	FMM_ChunkData& CurrentChunkData = ChunkDataArray[GeneratedChunkCount]; // Get the most recently added chunk data, which is the one currently being generated
+	GeneratedChunkCount++;
+	UE_LOG(LogTemp, Log, TEXT("Received surface height data for chunk (%d, %d)"), CurrentChunkData.CoordX, CurrentChunkData.CoordY);
 
 	int32 NumPoints = SurfaceValues.Num() == SubsurfaceValues.Num() ? SurfaceValues.Num() : 0;
 	for (int32 i = 0; i < NumPoints; i++)

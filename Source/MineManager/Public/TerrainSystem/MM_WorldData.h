@@ -20,6 +20,7 @@ class MINEMANAGER_API AMM_WorldData : public AActor
 	
 public:	
 	AMM_WorldData();
+	virtual void Tick(float DeltaTime) override;
 
 	void InitializeWorldDataParameters(const int32 InChunkSize, const int32 InCellSize, const int32 InMapSize, 
 		const int32 InWorldDepth, const int32 InSeed, const int32 InSurfaceHeightMultiplier, const int32 InSubsurfaceHeightMultiplier, const int32 InSubsurfaceHeightOffset,
@@ -29,6 +30,9 @@ public:
 	FOnChunkDataGenerated OnChunkDataGenerated;
 
 protected:
+	void CreateSurfaceGenerator();
+	UFUNCTION()
+	void RegenerateWorldData();
 	void GenerateWorldData();
 	// Tells the PCG graph to generate data for the chunk at the given coordinates
 	void RequestChunkGeneration(int32 X, int32 Y);
@@ -40,6 +44,8 @@ protected:
 	// Each FMM_CellData contains an array of FMM_CellLayer, representing the vertical depth of each layer and the material type of each layer
 	UPROPERTY()
 	TArray<FMM_ChunkData> ChunkDataArray;
+	int32 GeneratedChunkCount = 0;
+	float ElapsedGenerationTime = 0;
 
 	// PCG Graphs
 	UPROPERTY(EditDefaultsOnly, Category = "MyParameters|PCG Graphs")

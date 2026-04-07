@@ -36,9 +36,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyParameters|Movement")
 	bool bIsZoomingCamera = false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units"))
-	float MinArmLength = 1000.f;
+	float MinArmLength = 3000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units"))
-	float MaxArmLength = 10000.f;
+	float MaxArmLength = 16000.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MyParameters|Movement")
 	bool bIsRotatingCamera = false;
 

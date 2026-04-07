@@ -22,10 +22,10 @@ AMM_PlayerCameraPawn_ManagerMode::AMM_PlayerCameraPawn_ManagerMode()
 void AMM_PlayerCameraPawn_ManagerMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	TargetZoomLevel = 4000.f;
+
+	TargetZoomLevel = 10000.f;
 	SpringArm->TargetArmLength = TargetZoomLevel;
-	SpringArm->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f));
+	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = false;
 }
 

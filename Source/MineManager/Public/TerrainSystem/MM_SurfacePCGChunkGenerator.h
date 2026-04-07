@@ -25,6 +25,7 @@ public:
 	void SetupSurfaceDataPcg(const int32 InChunkSize, const int32 InCellSize, const int32 InMapSize,
 		const int32 InWorldDepth, const int32 InSeed, const int32 InSurfaceHeightMultiplier, const int32 InSubsurfaceHeightMultiplier, const int32 InSubsurfaceHeightOffset) const;
 	void GenerateChunkData(const FMM_ChunkData& OutChunkData) const;
+	void UpdateSeed(const int32 InSeed) const;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSurfaceChunkGenerated OnSurfaceChunkGenerated;

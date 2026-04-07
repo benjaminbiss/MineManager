@@ -43,6 +43,12 @@ void AMM_SurfacePCGChunkGenerator::GenerateChunkData(const FMM_ChunkData& OutChu
 	SurfacePCGComponent->GenerateLocal(EPCGComponentGenerationTrigger::GenerateAtRuntime, true);
 }
 
+void AMM_SurfacePCGChunkGenerator::UpdateSeed(const int32 InSeed) const
+{
+	UPCGGraphInstance* Instance = SurfacePCGComponent->GetGraphInstance();
+	Instance->SetGraphParameter(FName("Seed"), InSeed);
+}
+
 void AMM_SurfacePCGChunkGenerator::BeginPlay()
 {
 	Super::BeginPlay();

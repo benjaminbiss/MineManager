@@ -45,8 +45,6 @@ void AMM_GameMode_ManagerMode::SpawnWorldData()
 		WorldDataInstance->SetActorLabel(TEXT("World Data"));
 		WorldDataInstance->SetActorHiddenInGame(true);
 		WorldDataInstance->SetOwner(this);
-		// Use Random Seed for Testing
-		Seed = FMath::Rand();
 		WorldDataInstance->InitializeWorldDataParameters(ChunkSize, CellSize, MapSize, WorldDepth, Seed, SurfaceHeightMultiplier, SubsurfaceHeightMultiplier, SubsurfaceHeightOffset, CoalSeamThicknessThreshold, CoalSeamHeightOffset, CoalSeamDepth);
 	}
 }
