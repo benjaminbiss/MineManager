@@ -12,6 +12,7 @@ class UPCGGraphInstance;
 class UPCGGraph;
 class UPCGComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPCGGraphGeneration, const AMM_SurfacePCGChunkGenerator*, Generator, const TArray<double>&, SurfaceValues, const TArray<double>&, SubsurfaceValues);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSurfaceChunkGenerated, const TArray<double>&, SurfaceValues, const TArray<double>&, SubsurfaceValues);
 
 UCLASS()
@@ -27,6 +28,8 @@ public:
 	void GenerateChunkData(const FMM_ChunkData& OutChunkData) const;
 	void UpdateSeed(const int32 InSeed) const;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnPCGGraphGeneration OnPCGGraphGeneration;
 	UPROPERTY(BlueprintAssignable)
 	FOnSurfaceChunkGenerated OnSurfaceChunkGenerated;
 

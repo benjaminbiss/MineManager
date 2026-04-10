@@ -2,11 +2,10 @@
 
 #include "Controllers/MM_PlayerController.h"
 
+//#include "Entities/Workers/MM_WorkerManager.h"
+#include "Orders/MM_OrderManager.h"
 #include "TerrainSystem/MM_WorldData.h"
 #include "TerrainSystem/MM_TerrainManager.h"
-#include "TerrainSystem/MM_GridManager.h"
-
-#include "Entities/Workers/MM_WorkerManager.h"
 
 #include "Tasks/MM_TaskManager.h"
 
@@ -14,9 +13,9 @@ void AMM_GameMode_ManagerMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AMM_PlayerController* PC = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
+	PlayerControllerInstance = Cast<AMM_PlayerController>(GetWorld()->GetFirstPlayerController());
 	FVector PlayerStartLocation = FVector(ChunkSize * MapSize * CellSize * 0.5f, ChunkSize * MapSize * CellSize * 0.5f, 0);
-	PC->GetPawn()->SetActorLocation(PlayerStartLocation);
+	PlayerControllerInstance->GetPawn()->SetActorLocation(PlayerStartLocation);
 
 	SetupLevel();
 }
@@ -30,7 +29,7 @@ void AMM_GameMode_ManagerMode::SpawnManagers()
 {
 	SpawnWorldData();
 	SpawnTerrainManager();
-	//SpawnGridManager();
+	//SpawnOrderManager();
 	//SpawnWorkerManager();
 	//SpawnTaskManager();
 }
@@ -69,31 +68,38 @@ void AMM_GameMode_ManagerMode::SpawnTerrainManager()
 	}
 }
 
-void AMM_GameMode_ManagerMode::SpawnGridManager()
+void AMM_GameMode_ManagerMode::SpawnOrderManager()
 {
-	if (GridManager)
+	if (OrderManager)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GridManagerInstance = GetWorld()->SpawnActor<AMM_GridManager>(GridManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		GridManagerInstance->SetActorLabel(TEXT("Grid Manager"));
-		GridManagerInstance->SetActorHiddenInGame(true);
-		GridManagerInstance->SetOwner(this);
-		GridManagerInstance->InitializeGridParameters(MapSize * ChunkSize, CellSize);
+		OrderManagerInstance = GetWorld()->SpawnActor<AMM_OrderManager>(OrderManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		OrderManagerInstance->SetActorLabel(TEXT("Order Manager"));
+		OrderManagerInstance->SetActorHiddenInGame(true);
+		OrderManagerInstance->SetOwner(this);
+
+		if (PlayerControllerInstance)
+		{
+			PlayerControllerInstance->OnSelectedWorldLocationStarted.AddDynamic(OrderManagerInstance, &AMM_OrderManager::HandleOnSelectStarted);
+			PlayerControllerInstance->OnSelectedWorldLocationTriggered.AddDynamic(OrderManagerInstance, &AMM_OrderManager::HandleOnSelectTriggered);
+			PlayerControllerInstance->OnSelectedWorldLocationCompleted.AddDynamic(OrderManagerInstance, &AMM_OrderManager::HandleOnSelectCompleted);
+			PlayerControllerInstance->OnSecondarySelectInput.AddDynamic(OrderManagerInstance, &AMM_OrderManager::HandleOnSecondarySelect);
+		}
 	}
 }
 
 void AMM_GameMode_ManagerMode::SpawnWorkerManager()
 {
-	if (WorkerManager)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		WorkerManagerInstance = GetWorld()->SpawnActor<AMM_WorkerManager>(WorkerManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		WorkerManagerInstance->SetActorLabel(TEXT("Worker Manager"));
-		WorkerManagerInstance->SetActorHiddenInGame(true);
-		WorkerManagerInstance->SetOwner(this);
-	}
+	//if (WorkerManager)
+	//{
+	//	FActorSpawnParameters SpawnParams;
+	//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//	WorkerManagerInstance = GetWorld()->SpawnActor<AMM_WorkerManager>(WorkerManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	//	WorkerManagerInstance->SetActorLabel(TEXT("Worker Manager"));
+	//	WorkerManagerInstance->SetActorHiddenInGame(true);
+	//	WorkerManagerInstance->SetOwner(this);
+	//}
 }
 
 void AMM_GameMode_ManagerMode::SpawnTaskManager()
@@ -107,9 +113,6 @@ void AMM_GameMode_ManagerMode::SpawnTaskManager()
 		TaskManagerInstance->SetActorHiddenInGame(true);
 		TaskManagerInstance->SetOwner(this);
 
-		if (GridManagerInstance)
-		{
-			//TaskManagerInstance->GridManager = GridManagerInstance;
-		}
+
 	}
 }

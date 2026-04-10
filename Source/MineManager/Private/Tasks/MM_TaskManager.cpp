@@ -6,14 +6,8 @@
 
 AMM_TaskManager::AMM_TaskManager()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
-
-}
-
-void AMM_TaskManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
 }
 

@@ -15,7 +15,7 @@ class MINEMANAGER_API AMM_TaskManager : public AActor
 	
 public:	
 	AMM_TaskManager();
-	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION()	
 	void HandleDigTaskRequestStarted(const FVector& WorldPosition, const bool bPressed);
 	UFUNCTION()

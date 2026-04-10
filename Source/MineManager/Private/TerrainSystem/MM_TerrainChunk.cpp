@@ -199,7 +199,7 @@ void AMM_TerrainChunk::WriteWeightMapInfo(TArray<FColor> Pixels)
 
 void AMM_TerrainChunk::UpdateChunkMesh(const FMM_ChunkData& Chunk)
 {
-	UE_LOG(LogTemp, Log, TEXT("Updating chunk mesh for chunk at (%d, %d)"), Chunk.CoordX, Chunk.CoordY);
+	//UE_LOG(LogTemp, Log, TEXT("Updating chunk mesh for chunk at (%d, %d)"), Chunk.CoordX, Chunk.CoordY);
     double ArraySize = Vertices.Num();
     //UE_LOG(LogTemp, Log, TEXT("Number of vertices: %f, Number of cells: %d"), ArraySize, Chunk.Cells.Num());
     TArray<FColor> Pixels;

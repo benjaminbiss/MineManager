@@ -96,7 +96,8 @@ void AMM_SurfacePCGChunkGenerator::OnPCGGraphGenerated(UPCGComponent* InComponen
 					// 4. Broadcast 
 					if (SurfaceAccessor->GetRange<double>(SurfaceValues, 0, Keys) && SubsurfaceAccessor->GetRange<double>(SubsurfaceValues, 0, Keys))
 					{
-						OnSurfaceChunkGenerated.Broadcast(SurfaceValues, SubsurfaceValues);
+						OnPCGGraphGeneration.Broadcast(this, SurfaceValues, SubsurfaceValues);
+						//OnSurfaceChunkGenerated.Broadcast(SurfaceValues, SubsurfaceValues);
 					}
 
 					//// 5. Batch Read - Iterate local array and the Points array in parallel

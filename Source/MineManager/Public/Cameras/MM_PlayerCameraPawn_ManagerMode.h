@@ -26,7 +26,7 @@ protected:
 
 	// Camera Settings
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units per second"))
-	float MoveSpeed = 2000.f;
+	float MoveSpeed = 4000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Degrees per second"))
 	float RotationSpeed = 90.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MyParameters|Movement", meta = (ToolTip = "Units per mouse wheel tick"))

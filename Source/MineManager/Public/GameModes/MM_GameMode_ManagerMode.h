@@ -4,12 +4,13 @@
 #include "GameFramework/GameModeBase.h"
 #include "MM_GameMode_ManagerMode.generated.h"
 
+class AMM_PlayerController;
 class AMM_WorkerManager;
 class AMM_TaskManager;
 class AMM_WorldData;
 class AMM_WorldDataVisualizer;
 class AMM_TerrainManager;
-class AMM_GridManager;
+class AMM_OrderManager;
 
 UCLASS()
 class MINEMANAGER_API AMM_GameMode_ManagerMode : public AGameModeBase
@@ -23,9 +24,12 @@ protected:
 	void SpawnManagers();
 	void SpawnWorldData();
 	void SpawnTerrainManager();
-	void SpawnGridManager();
+	void SpawnOrderManager();
 	void SpawnWorkerManager();
 	void SpawnTaskManager();
+
+	UPROPERTY()
+	AMM_PlayerController* PlayerControllerInstance;
 
 public:
 	// World Data
@@ -47,9 +51,9 @@ public:
 	
 	// Grid Manager
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_GridManager> GridManager;
+	TSubclassOf<AMM_OrderManager> OrderManager;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
-	AMM_GridManager* GridManagerInstance;
+	AMM_OrderManager* OrderManagerInstance;
 
 	// Worker Manager
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
