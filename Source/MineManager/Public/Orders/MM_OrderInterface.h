@@ -19,8 +19,8 @@ class MINEMANAGER_API IMM_OrderInterface
 
 public:
     // Mandatory implementations for every order type
-	virtual void PreviewOrder(const TArray<FIntVector>& SelectedCells) = 0;
-    virtual void ExecuteOrder(const TArray<FIntVector>& SelectedCells) = 0;
+	virtual void PreviewOrder(const FHitResult& HitResult) = 0;
+    virtual void ExecuteOrder(const FHitResult& HitResult) = 0;
     virtual void CancelOrder() = 0;
     virtual void TickOrder(float DeltaTime) = 0;
     virtual EOrderType GetOrderType() const = 0;

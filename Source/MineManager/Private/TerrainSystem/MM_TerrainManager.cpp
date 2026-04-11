@@ -62,6 +62,7 @@ void AMM_TerrainManager::CreateChunk(const FVector& ChunkCord)
 	if (NewChunk)
 	{
 		TerrainChunks.Add(NewChunk);
+		NewChunk->Tags.Add(FName("Terrain"));
 		NewChunk->SetOwner(this);
 		NewChunk->ChunkCord = ChunkCord;
 		NewChunk->GenerateChunkMesh(ChunkDimensionsInVerts, TerrainMaterial, CellSize, LineThickness, GridOpacity, GridColor);

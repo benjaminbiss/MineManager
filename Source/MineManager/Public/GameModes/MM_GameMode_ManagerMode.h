@@ -34,7 +34,7 @@ protected:
 public:
 	// World Data
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_WorldData> WorldData;
+	TSubclassOf<AMM_WorldData> WorldDataClass;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
 	AMM_WorldData* WorldDataInstance;
 	// World Data Visualizer
@@ -45,13 +45,13 @@ public:
 
 	// Terrain Manager
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_TerrainManager> TerrainManager;
+	TSubclassOf<AMM_TerrainManager> TerrainManagerClass;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
 	AMM_TerrainManager* TerrainManagerInstance;
 	
 	// Grid Manager
 	UPROPERTY(EditAnywhere, Category = "MyParameters|Managers")
-	TSubclassOf<AMM_OrderManager> OrderManager;
+	TSubclassOf<AMM_OrderManager> OrderManagerClass;
 	UPROPERTY(VisibleAnywhere, Category = "MyParameters|Managers")
 	AMM_OrderManager* OrderManagerInstance;
 

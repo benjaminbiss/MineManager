@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TerrainSystem/FMM_ChunkData.h"
+#include "TerrainSystem/FMM_CellData.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -29,6 +30,9 @@ public:
 	UPROPERTY(BlueprintCallable)
 	FOnChunkDataGenerated OnChunkDataGenerated;
 
+	FMM_ChunkData& GetChunkData(FVector Location);
+	FMM_CellData& GetCellData(FVector Location);
+
 protected:
 	void CreateSurfaceGenerator();
 	UFUNCTION()
@@ -39,6 +43,10 @@ protected:
 	// Binds to the PCG graph's custom delegate emitted when generation complete event, and inserts the generated surface data into the corresponding chunk data
 	UFUNCTION()
 	void WriteSurfaceDataToChunkData(const AMM_SurfacePCGChunkGenerator* Generator, const TArray<double>& SurfaceValues, const TArray<double>& SubsurfaceValues);
+
+	// HELPERS
+	int32 GetChunkIndex(FVector Location);
+	int32 GetCellIndex(FVector Location);
 
 	// 1D array to store cell data, indexed by (x + y * GridSize)
 	// Each FMM_CellData contains an array of FMM_CellLayer, representing the vertical depth of each layer and the material type of each layer

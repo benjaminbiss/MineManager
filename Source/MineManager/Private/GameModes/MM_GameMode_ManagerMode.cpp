@@ -29,18 +29,18 @@ void AMM_GameMode_ManagerMode::SpawnManagers()
 {
 	SpawnWorldData();
 	SpawnTerrainManager();
-	//SpawnOrderManager();
+	SpawnOrderManager();
 	//SpawnWorkerManager();
 	//SpawnTaskManager();
 }
 
 void AMM_GameMode_ManagerMode::SpawnWorldData()
 {
-	if (WorldData)
+	if (WorldDataClass)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		WorldDataInstance = GetWorld()->SpawnActor<AMM_WorldData>(WorldData, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		WorldDataInstance = GetWorld()->SpawnActor<AMM_WorldData>(WorldDataClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		WorldDataInstance->SetActorLabel(TEXT("World Data"));
 		WorldDataInstance->SetActorHiddenInGame(true);
 		WorldDataInstance->SetOwner(this);
@@ -50,11 +50,11 @@ void AMM_GameMode_ManagerMode::SpawnWorldData()
 
 void AMM_GameMode_ManagerMode::SpawnTerrainManager()
 {
-	if (TerrainManager)
+	if (TerrainManagerClass)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		TerrainManagerInstance = GetWorld()->SpawnActor<AMM_TerrainManager>(TerrainManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		TerrainManagerInstance = GetWorld()->SpawnActor<AMM_TerrainManager>(TerrainManagerClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		TerrainManagerInstance->SetActorLabel(TEXT("Terrain Manager"));
 		TerrainManagerInstance->SetActorHiddenInGame(true);
 		TerrainManagerInstance->SetOwner(this);
@@ -70,14 +70,19 @@ void AMM_GameMode_ManagerMode::SpawnTerrainManager()
 
 void AMM_GameMode_ManagerMode::SpawnOrderManager()
 {
-	if (OrderManager)
+	if (OrderManagerClass)
 	{
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		OrderManagerInstance = GetWorld()->SpawnActor<AMM_OrderManager>(OrderManager, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		OrderManagerInstance = GetWorld()->SpawnActor<AMM_OrderManager>(OrderManagerClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 		OrderManagerInstance->SetActorLabel(TEXT("Order Manager"));
 		OrderManagerInstance->SetActorHiddenInGame(true);
 		OrderManagerInstance->SetOwner(this);
+
+		if (WorldDataInstance)
+		{
+			OrderManagerInstance->WorldData = WorldDataInstance;
+		}
 
 		if (PlayerControllerInstance)
 		{

@@ -1,8 +1,6 @@
 #include "TerrainSystem/MM_WorldData.h"
 
-#include "TerrainSystem/FMM_ChunkData.h"
 #include "TerrainSystem/FMM_CellLayer.h"
-#include "TerrainSystem/FMM_CellData.h"
 #include "TerrainSystem/EMM_CellGeologyType.h"
 #include "TerrainSystem/MM_SurfacePCGChunkGenerator.h"
 
@@ -33,11 +31,40 @@ void AMM_WorldData::InitializeWorldDataParameters(const int32 InChunkSize, const
 	CoalSeamHeightOffset = InCoalSeamHeightOffset;
 	CoalSeamDepth = InCoalSeamDepth;
 
-	int32 GeneratorCount = FMath::Floor(MapSize + 1 / 10);
+	int32 GeneratorCount = FMath::Floor(MapSize / 2);
 	for (int32 i = 0; i < GeneratorCount; i++)
 		CreateSurfaceGenerator();
 
 	RegenerateWorldData();
+}
+
+FMM_ChunkData& AMM_WorldData::GetChunkData(FVector Location)
+{
+	int32 ChunkIndex = GetChunkIndex(Location);
+	if (ChunkIndex < 0 || ChunkIndex >= ChunkDataArray.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetCellData | Received an invalid chunk index: %d"), ChunkIndex);		
+		return ChunkDataArray[0];
+	}
+	return ChunkDataArray[ChunkIndex];
+}
+
+FMM_CellData& AMM_WorldData::GetCellData(FVector Location)
+{
+	//UE_LOG(LogTemp, Log, TEXT("Chunk: %d - Cell: %d"), GetChunkIndex(Location), GetCellIndex(Location));
+	int32 ChunkIndex = GetChunkIndex(Location);
+	int32 CellIndex = GetCellIndex(Location);
+	if (ChunkIndex < 0 || ChunkIndex >= ChunkDataArray.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetCellData | Received an invalid chunk index: %d"), ChunkIndex);
+		return ChunkDataArray[0].Cells[0];
+	}
+	else if (CellIndex < 0 || CellIndex >= ChunkDataArray[ChunkIndex].Cells.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetCellData | Received an invalid cell index: %d"), CellIndex);
+		return ChunkDataArray[0].Cells[0];
+	}
+	return ChunkDataArray[ChunkIndex].Cells[CellIndex];
 }
 
 void AMM_WorldData::CreateSurfaceGenerator()
@@ -160,4 +187,20 @@ void AMM_WorldData::WriteSurfaceDataToChunkData(const AMM_SurfacePCGChunkGenerat
 	}
 	OnChunkDataGenerated.Broadcast(CurrentChunkData);
 	GenerateWorldData();
+}
+
+int32 AMM_WorldData::GetChunkIndex(FVector Location)
+{
+	int32 X = FMath::Floor(Location.X / (ChunkSize * CellSize));
+	int32 Y = FMath::Floor(Location.Y / (ChunkSize * CellSize));
+	return X + Y * MapSize;
+}
+
+int32 AMM_WorldData::GetCellIndex(FVector Location)
+{
+	int32 X = FMath::Floor(Location.X / CellSize);
+	int32 Y = FMath::Floor(Location.Y / CellSize);
+	X = X % ChunkSize;
+	Y = Y % ChunkSize;
+	return X + Y * ChunkSize;
 }

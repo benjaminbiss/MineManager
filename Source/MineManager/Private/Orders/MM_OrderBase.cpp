@@ -1,10 +1,10 @@
 #include "Orders/MM_OrderBase.h"
 
-void UMM_OrderBase::PreviewOrder(const TArray<FIntVector>& SelectedCells)
+void UMM_OrderBase::PreviewOrder(const FHitResult& HitResult)
 {
 }
 
-void UMM_OrderBase::ExecuteOrder(const TArray<FIntVector>& SelectedCells)
+void UMM_OrderBase::ExecuteOrder(const FHitResult& HitResult)
 {
 }
 
